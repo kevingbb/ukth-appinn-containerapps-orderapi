@@ -21,32 +21,78 @@ There are two options:
 
 ## Getting Started
 
+As this is currently a preview service, you will need to install an Azure CLI extension to work with Container Apps.
+
+Run the following command.
+
+```bash
+az extension add \
+  --source https://workerappscliextension.blob.core.windows.net/azure-cli-extension/containerapp-0.2.0-py2.py3-none-any.whl
+```
+
 ### Setup Solution
+
+Let's start by setting some variables that we will use for creating Azure resources in this demo, and a resource group for those resources to reside in.
 
 ```bash
 # Demo Setup with Preview Repo
-# Setup Pre-requisite Variables
-RG=khcademo01-rg
-LOC=northeurope
-CAENV=khcaenv001
+
+# Generate a random name
+
+name=ca-$(cat /dev/urandom | tr -dc '[:lower:]' | fold -w ${1:-5} | head -n 1)
+
+# Set variables for the rest of the demo
+
+resourceGroup=${name}-rg
+location=northeurope
+containerAppEnv=${name}-env
+logAnalytics=${name}-la
+appInsights=${name}-ai
+storageAccount=$(echo $name | tr -d -)sa
 # Create Resource Group
-az group create --name $RG --location $LOC
+az group create --name $resourceGroup --location $location -o table
 ```
 
-### Deploy v1
+### Deploy version 1 of the application
+
+Deploy the first version of the application to Azure. This typically takes around 3 to 5 minutes to complete.
 
 ```bash
 # Deploy v1 of the Solution (3 - 5 Mins)
-az deployment group create -g $RG --template-file v1_template.json --parameters @v1_parameters.json
+
+az deployment group create \
+  -g $resourceGroup \
+  --template-file v1_template.json \
+  --parameters @v1_parameters.json \
+  --parameters ContainerApps.Environment.Name=$containerAppEnv \
+    LogAnalytics.Workspace.Name=$logAnalytics \
+    AppInsights.Name=$appInsights \
+    StorageAccount.Name=$storageAccount
+
+```
+
+Now the application is deployed, let's determine the URL we'll need to use to access it and store that in a variable for convenience
+
+```bash
+appURL=https://storeapp.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/store
+```
+
+
+
+```bash
 # Check StoreApp Again
-curl "https://storeapp.$(az containerapp env show -g $RG -n $CAENV --query 'defaultDomain' -o tsv)/store"
+
+curl $appURL
+
 # Hmmm... where is the data? I guess its time for troubleshooting.
 # Check Queue Reader Application Logs for Issues
+
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s has "queuereader" and ContainerName_s has "queuereader"
 | where Log_s has "null"
 | project TimeGenerated, ContainerAppName_s, RevisionName_s, ContainerName_s, Log_s
 | order by TimeGenerated desc
+
 # Let's make the necessary changes to the solution and deploy again.
 ```
 
