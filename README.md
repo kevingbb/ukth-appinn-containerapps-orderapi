@@ -199,9 +199,19 @@ ContainerAppConsoleLogs_CL
 
 # Deploy v4
 
+
 ```bash
-# Deploy v4 of the Solution
-az deployment group create -g $resourceGroup --template-file v4_template.json --parameters @v4_parameters.json
+az deployment group create \
+  -g $resourceGroup \
+  --template-file v4_template.json \
+  --parameters @v4_parameters.json \
+  --parameters ContainerApps.Environment.Name=$containerAppEnv \
+    LogAnalytics.Workspace.Name=$logAnalytics \
+    AppInsights.Name=$appInsights \
+    StorageAccount.Name=$storageAccount
+```
+
+```bash
 # Let's send a bunch of orders and check out the splitting of traffic.
 hey -m POST -n 10 -c 1 "https://httpapi.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/Data?message=testscale"
 # Let's check the number of orders in the queue
