@@ -41,6 +41,25 @@ containerAppEnv=${name}-env
 logAnalytics=${name}-la
 appInsights=${name}-ai
 storageAccount=$(echo $name | tr -d -)sa
+```
+
+Optional -  if using Codespaces or not logged into Azure CLI
+
+```bash
+# Login into Azure CLI
+az login
+
+# Check you are logged into the right Azure subscription. Inspect the name field
+az account show
+
+# In case not the right subscription
+az account set -s <subscription-id>
+
+```
+
+
+```bash
+
 # Create Resource Group
 az group create --name $resourceGroup --location $location -o table
 ```
@@ -158,15 +177,15 @@ az deployment group create \
 
 
 ```bash
-# Deploy v3 of the Solution
-az deployment group create -g $RG --template-file v3_template.json --parameters @v3_parameters.json
 # Let's send some orders.
-curl "https://httpapi.$(az containerapp env show -g $RG -n $CAENV --query 'defaultDomain' -o tsv)/Data"
-curl -X POST "https://httpapi.$(az containerapp env show -g $RG -n $CAENV --query 'defaultDomain' -o tsv)/Data"
+curl "https://httpapi.$(az containerapp env show -g $  -g $resourceGroup \
+ -n $containerAppEnv --query 'defaultDomain' -o tsv)/Data"
+curl -X POST "https://httpapi.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/Data"
 # Check StoreApp Again
-curl "https://storeapp.$(az containerapp env show -g $RG -n $CAENV --query 'defaultDomain' -o tsv)/store"
+curl "https://storeapp.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/store"
+# Follow instructions to install the load generator hey: https://github.com/rakyll/hey. For example, in Ubuntu: sudo apt-get install hey
 # Let's send a bunch of orders and check out the splitting of traffic.
-hey -m POST -n 10 -c 1 "https://httpapi.$(az containerapp env show -g $RG -n $CAENV --query 'defaultDomain' -o tsv)/Data?message=hello"
+hey -m POST -n 10 -c 1 "https://httpapi.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/Data?message=hello"
 # Let's check the Queue Reader Application Logs
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s has "queuereader" and ContainerName_s has "queuereader"
@@ -182,11 +201,11 @@ ContainerAppConsoleLogs_CL
 
 ```bash
 # Deploy v4 of the Solution
-az deployment group create -g $RG --template-file v4_template.json --parameters @v4_parameters.json
+az deployment group create -g $resourceGroup --template-file v4_template.json --parameters @v4_parameters.json
 # Let's send a bunch of orders and check out the splitting of traffic.
-hey -m POST -n 10 -c 1 "https://httpapi.$(az containerapp env show -g $RG -n $CAENV --query 'defaultDomain' -o tsv)/Data?message=testscale"
+hey -m POST -n 10 -c 1 "https://httpapi.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/Data?message=testscale"
 # Let's check the number of orders in the queue
-curl "https://httpapi.$(az containerapp env show -g $RG -n $CAENV --query 'defaultDomain' -o tsv)/Data"
+curl "https://httpapi.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/Data"
 # Let's check the Queue Reader Application Logs
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s has "queuereader" and ContainerName_s has "queuereader"
@@ -195,21 +214,21 @@ ContainerAppConsoleLogs_CL
 | order by TimeGenerated desc
 # Demonstrate Scaling
 # Terminal Setup for Demo
-az containerapp list -g $RG --query "[].{Name:name,State:provisioningState}" -o table
+az containerapp list -g $resourceGroup --query "[].{Name:name,State:provisioningState}" -o table
 while :; do clear; ???; sleep 2; done
-RG=khcademo01-rg
-while :; do clear; az containerapp list -g $RG --query "[].{Name:name,State:provisioningState}" -o table; sleep 5; done
-RG=khcademo01-rg
-while :; do clear; az containerapp revision list -g $RG -n queuereader --query "[].{Revision:name,Replicas:replicas,Active:active,Created:createdTime}" -o table; sleep 5; done
-RG=khcademo01-rg
-while :; do clear; az containerapp revision list -g $RG -n storeapp --query "[].{Revision:name,Replicas:replicas,Active:active,Created:createdTime}" -o table; sleep 5; done
-RG=khcademo01-rg
-while :; do clear; az containerapp revision list -g $RG -n httpapi --query "[].{Revision:name,Replicas:replicas,Active:active,Created:createdTime}" -o table; sleep 5; done
-RG=khcademo01-rg
-CAENV=khcaenv001
-while :; do clear; curl "https://httpapi.$(az containerapp env show -g $RG -n $CAENV --query 'defaultDomain' -o tsv)/Data"; sleep 5; done
+resourceGroup=${name}-rg
+while :; do clear; az containerapp list -g $resourceGroup --query "[].{Name:name,State:provisioningState}" -o table; sleep 5; done
+resourceGroup=${name}-rg
+while :; do clear; az containerapp revision list -g $resourceGroup -n queuereader --query "[].{Revision:name,Replicas:replicas,Active:active,Created:createdTime}" -o table; sleep 5; done
+resourceGroup=${name}-rg
+while :; do clear; az containerapp revision list -g $resourceGroup -n storeapp --query "[].{Revision:name,Replicas:replicas,Active:active,Created:createdTime}" -o table; sleep 5; done
+resourceGroup=${name}-rg
+while :; do clear; az containerapp revision list -g $resourceGroup -n httpapi --query "[].{Revision:name,Replicas:replicas,Active:active,Created:createdTime}" -o table; sleep 5; done
+resourceGroup=${name}-rg
+containerAppEnv=${name}-env
+while :; do clear; curl "https://httpapi.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/Data"; sleep 5; done
 # Simulate a Load
-hey -m POST -n 10000 -c 10 "https://httpapi.$(az containerapp env show -g $RG -n $CAENV --query 'defaultDomain' -o tsv)/Data?message=loadtest"
+hey -m POST -n 10000 -c 10 "https://httpapi.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/Data?message=loadtest"
 ```
 
 ### Cleanup
@@ -217,7 +236,7 @@ hey -m POST -n 10000 -c 10 "https://httpapi.$(az containerapp env show -g $RG -n
 1. Cleanup the Azure Resource Group:
 
 ```bash
-az group delete -g $RG --no-wait -y
+az group delete -g $resourceGroup --no-wait -y
 ```
 
 ## Acknowledgements
