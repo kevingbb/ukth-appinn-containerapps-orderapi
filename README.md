@@ -49,6 +49,25 @@ containerAppEnv=${name}-env
 logAnalytics=${name}-la
 appInsights=${name}-ai
 storageAccount=$(echo $name | tr -d -)sa
+```
+
+Optional -  if using Codespaces or not logged into Azure CLI
+
+```bash
+# Login into Azure CLI
+az login
+
+# Check you are logged into the right Azure subscription. Inspect the name field
+az account show
+
+# In case not the right subscription
+az account set -s <subscription-id>
+
+```
+
+
+```bash
+
 # Create Resource Group
 az group create --name $resourceGroup --location $location -o table
 ```
@@ -261,6 +280,7 @@ So, is our app ready for primetime now? Let's change things so that the new app 
 
 One final time, we'll now deploy the new configuration with scaling configured.
 
+
 ```bash
 az deployment group create \
   -g $resourceGroup \
@@ -292,6 +312,7 @@ ContainerAppConsoleLogs_CL
 | project TimeGenerated, Log_s
 | order by TimeGenerated desc
 ```
+
 Now let's see scaling in action. To do this, we will generate a large amount of messages which should cause the applications to scale up to cope with the demand.
 
 To demonstrate this, a script that uses the `tmux` command is provided in the `scripts` folder of this repository. Run the following commands:
