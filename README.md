@@ -24,7 +24,15 @@ az extension add \
   --source https://workerappscliextension.blob.core.windows.net/azure-cli-extension/containerapp-0.2.0-py2.py3-none-any.whl
 ```
 
-### Setup Solution
+We will be using the `hey` load testing tool later on. If you are using Codespaces, the container includes Homebrew, so you can install `hey` like this:
+
+```bash
+brew install hey
+```
+
+If you are using an environment other than Codespaces, you can find installation instructions for `hey` here - https://github.com/rakyll/hey
+
+## Setup Solution
 
 Let's start by setting some variables that we will use for creating Azure resources in this demo, and a resource group for those resources to reside in.
 
@@ -64,7 +72,7 @@ az account set -s <subscription-id>
 az group create --name $resourceGroup --location $location -o table
 ```
 
-### Deploy version 1 of the application
+## Deploy version 1 of the application
 
 We'll deploy the first version of the application to Azure. This typically takes around 3 to 5 minutes to complete.
 
@@ -111,7 +119,7 @@ You should see a number of log file entries which will likely all contain the sa
 
 Looks like we're missing a configuration value relating to Dapr. So, we've gone ahead and made the necessary changes to our code and packaged that up in version 2 of our application's container. Let's deploy version 2.
 
-### Deploy Version 2
+## Deploy Version 2
 
 We'll repeat the deployment command from earlier, but we've updated our template to use version 2 of the queuereader application.
 
@@ -153,16 +161,69 @@ curl -X POST $dataURL?message=test
 Ok, let's check our Store URL and see what happens this time
 
 ```bash
-# Check StoreApp Again
 curl $storeURL
-# Hmmm... where is the message? Let's look at the application code.
-#DataController.cs
-# Ahhh... we see that the message is not being sent.
-# Let's make the necessary changes to the solution and deploy again, but this time let's do a controlled
-# traffic split and only send 20% of requests to the new endpoint.
 ```
 
-### Deploy v3
+> `[{"id":"f30e1eb6-d9d1-458b-b8d3-327e5597ffc7","message":"57e88c1e-f4a4-4c66-8eb5-128bb235b08d"}]`
+
+Ok, that's something but that's not the message we sent. Let's take a look at the application code
+
+**DataController.cs**
+```c#
+...
+  [HttpPost]
+  public async Task PostAsync()
+  {
+      try
+      {
+          await queueClient.SendMessageAsync(Guid.NewGuid().ToString());
+
+          Ok();
+      }
+...
+```
+
+It looks like the code is set to send a GUID, not the message itself. Must have been something the developer left in to test things out. Let's modify that code:
+
+**DataController.cs** (version 2)
+```c#
+  [HttpPost]
+  public async Task PostAsync(string message)
+  {
+      try
+      {
+          await queueClient.SendMessageAsync(message + DateTimeOffset.Now.ToString());
+
+          Ok();
+      }
+```
+
+We've fixed the code so that the message received is now actually being sent and we've packaged this up into a new container ready to be redeployed.
+
+But maybe we should be cautious and make sure this new change is working as expected. Let's perform a controlled rollout of the new version and split the incoming network traffic so that only 20% of requests will be sent to the new version of the application.
+
+To implement the traffic split, the following has been added to the deployment template
+
+```
+  "ingress": {
+      "external": true,
+      "targetPort": 80,
+      "traffic":[
+          {
+              "revisionName": "[concat('httpapi--', parameters('ContainerApps.HttpApi.CurrentRevisionName'))]",
+              "weight": 80
+          },
+          {
+              "latestRevision": true,
+              "weight": 20
+          }
+      ]
+```
+Effectively, we're asking for 80% of traffic to be sent to the current version (revision) of the application and 20% to be sent to the new version that's about to be deployed.
+
+## Deploy version 3
+
+Once again, let's repeat the deployment command from earlier, now using version 2 of the HTTP API application and with traffic splitting configured
 
 ```bash
 az deployment group create \
@@ -175,29 +236,49 @@ az deployment group create \
     StorageAccount.Name=$storageAccount
 ```
 
+With the third iteration of our applications deployed, let's try and send another order.
 
 ```bash
-# Let's send some orders.
-curl "https://httpapi.$(az containerapp env show -g $  -g $resourceGroup \
- -n $containerAppEnv --query 'defaultDomain' -o tsv)/Data"
-curl -X POST "https://httpapi.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/Data"
-# Check StoreApp Again
-curl "https://storeapp.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/store"
-# Follow instructions to install the load generator hey: https://github.com/rakyll/hey. For example, in Ubuntu: sudo apt-get install hey
-# Let's send a bunch of orders and check out the splitting of traffic.
-hey -m POST -n 10 -c 1 "https://httpapi.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/Data?message=hello"
-# Let's check the Queue Reader Application Logs
+curl -X POST $dataURL?message=test
+```
+And let's check the Store application again to see if the messages have been received
+
+```bash
+curl $storeURL | jq
+```
+
+> `[{"id":"f30e1eb6-d9d1-458b-b8d3-327e5597ffc7","message":"57e88c1e-f4a4-4c66-8eb5-128bb235b08d"},
+> {"id":"6365dabd-2971-4ccb-a615-dd11c9bbbc3a","message":"test12/01/2021 15:14:43 +00:00"}]`
+
+That's looking better. We can still see the original message, but we can also now see our "test" message with the date and time appended to it.
+
+We configured traffic splitting, so let's see that in action. First we will need to send multiple messages to the application. We can use the load testing tool `hey` to do that.
+
+```bash
+hey -m POST -n 25 -c 1 $dataURL?message=hello
+```
+
+```bash
+curl $storeURL | jq
+```
+
+Let's check the application logs for the Queue Reader application
+
+```
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s has "queuereader" and ContainerName_s has "queuereader"
 | where Log_s has "Message"
 | project TimeGenerated, Log_s
 | order by TimeGenerated desc
-# Ahhh... we see that the new changes are now working and only 1 in 5 messages are showing the message.
-# Let's now ramp up the changes to 100% and setup the proper scaling rules. For our use case we want to
-# make sure we are being cost effective and scaling to zero.
 ```
 
-# Deploy v4
+Looking through those logs, you should see a mix of messages, with some containing "hello" and others still containing a GUID. It won't be exact, but roughly one out of every five messages should contain "hello".
+
+So, is our app ready for primetime now? Let's change things so that the new app is now receiving all of the traffic, plus we'll also setup some scaling rules. This will allow the container apps to scale up when things are busy, and scale to zero when things are quiet.
+
+## Deploy version 4
+
+One final time, we'll now deploy the new configuration with scaling configured.
 
 
 ```bash
@@ -211,39 +292,47 @@ az deployment group create \
     StorageAccount.Name=$storageAccount
 ```
 
+First, let's confirm that all of the traffic is now going to the new application
+
 ```bash
-# Let's send a bunch of orders and check out the splitting of traffic.
-hey -m POST -n 10 -c 1 "https://httpapi.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/Data?message=testscale"
-# Let's check the number of orders in the queue
-curl "https://httpapi.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/Data"
-# Let's check the Queue Reader Application Logs
+hey -m POST -n 10 -c 1 $dataURL?message=testscale
+```
+
+Let's check the number of orders in the queue
+```bash
+curl $dataURL
+```
+
+As before, we can check the application log files in Log Analytics to see what messages are being received
+
+```
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s has "queuereader" and ContainerName_s has "queuereader"
 | where Log_s has "Message"
 | project TimeGenerated, Log_s
 | order by TimeGenerated desc
-# Demonstrate Scaling
-# Terminal Setup for Demo
-az containerapp list -g $resourceGroup --query "[].{Name:name,State:provisioningState}" -o table
-while :; do clear; ???; sleep 2; done
-resourceGroup=${name}-rg
-while :; do clear; az containerapp list -g $resourceGroup --query "[].{Name:name,State:provisioningState}" -o table; sleep 5; done
-resourceGroup=${name}-rg
-while :; do clear; az containerapp revision list -g $resourceGroup -n queuereader --query "[].{Revision:name,Replicas:replicas,Active:active,Created:createdTime}" -o table; sleep 5; done
-resourceGroup=${name}-rg
-while :; do clear; az containerapp revision list -g $resourceGroup -n storeapp --query "[].{Revision:name,Replicas:replicas,Active:active,Created:createdTime}" -o table; sleep 5; done
-resourceGroup=${name}-rg
-while :; do clear; az containerapp revision list -g $resourceGroup -n httpapi --query "[].{Revision:name,Replicas:replicas,Active:active,Created:createdTime}" -o table; sleep 5; done
-resourceGroup=${name}-rg
-containerAppEnv=${name}-env
-while :; do clear; curl "https://httpapi.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/Data"; sleep 5; done
-# Simulate a Load
-hey -m POST -n 10000 -c 10 "https://httpapi.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/Data?message=loadtest"
 ```
+
+Now let's see scaling in action. To do this, we will generate a large amount of messages which should cause the applications to scale up to cope with the demand.
+
+To demonstrate this, a script that uses the `tmux` command is provided in the `scripts` folder of this repository. Run the following commands:
+
+```bash
+cd /scripts
+./appwatch.sh $resourceGroup $dataURL
+```
+
+This will split your terminal into four separate views. 
+
+- On the left, you will see the output from the `hey` command. It's going to send 10,000 requests to the application, so there will be a short delay, around 20 to 30 seconds, whilst the requests are sent. Once the `hey` command finishes, it should report its results.
+- On the right at the top, you will see a list of the container app versions (revisions) that we've deployed. One of these will be the latest version that we just deployed. As `hey` sends more and more messages, you should notice that one of these revisions of the app starts to increase its replica count
+- Also on the right, in the middle, you should see the current count of messages in the queue. This will increase to 10,000 and then slowly decrease as the app works it way through the queue.
+
+Once `hey` has finished generating messages, the number of instances of the HTTP API application should start to scale up and eventually max out at 10 replicas. After the number of messages in the queue reduces to zero, you should see the number of replicas scale down and return to 1.
 
 ### Cleanup
 
-1. Cleanup the Azure Resource Group:
+Deleting the Azure resource group should remove everything associated with this demo.
 
 ```bash
 az group delete -g $resourceGroup --no-wait -y
