@@ -225,7 +225,7 @@ curl -X POST $dataURL?message=test
 And let's check the Store application again to see if the messages have been received
 
 ```bash
-curl $storeURL
+curl $storeURL | jq
 ```
 
 > `[{"id":"f30e1eb6-d9d1-458b-b8d3-327e5597ffc7","message":"57e88c1e-f4a4-4c66-8eb5-128bb235b08d"},
@@ -236,7 +236,11 @@ That's looking better. We can still see the original message, but we can also no
 We configured traffic splitting, so let's see that in action. First we will need to send multiple messages to the application. We can use the load testing tool `hey` to do that.
 
 ```bash
-hey -m POST -n 10 -c 1 $dataURL?message=hello
+hey -m POST -n 25 -c 1 $dataURL?message=hello
+```
+
+```bash
+curl $storeURL | jq
 ```
 
 Let's check the application logs for the Queue Reader application
@@ -275,9 +279,8 @@ hey -m POST -n 10 -c 1 $dataURL?message=testscale
 ```
 
 Let's check the number of orders in the queue
-(not working?)
 ```bash
-curl "https://httpapi.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/Data"
+curl $dataURL
 ```
 
 As before, we can check the application log files in Log Analytics to see what messages are being received
