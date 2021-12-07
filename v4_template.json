@@ -196,7 +196,7 @@
                 "template": {
                     "containers": [
                         {
-                            "image": "melzayet/ca-operational-dashboard:v1",
+                            "image": "melzayet/ca-operational-dashboard:v1.02",
                             "name": "dashboardapp"
                         }
                     ],
