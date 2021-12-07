@@ -180,6 +180,91 @@
             ]
         },
         {
+            "name": "dashboardapp",
+            "type": "Microsoft.Web/containerApps",
+            "apiVersion": "2021-03-01",
+            "kind": "containerapp",
+            "location": "[parameters('Location')]",
+            "properties": {
+                "kubeEnvironmentId": "[variables('ContainerApps.Environment.Id')]",
+                "configuration": {
+                    "ingress": {
+                        "external": true,
+                        "targetPort": 80
+                    }
+                },
+                "template": {
+                    "containers": [
+                        {
+                            "image": "melzayet/ca-operational-dashboard:v1",
+                            "name": "dashboardapp"
+                        }
+                    ],
+                    "scale": {
+                        "minReplicas": 1,
+                        "maxReplicas": 1,
+                        "rules": []
+                    },
+                    "dapr": {
+                        "enabled": true,
+                        "appPort": 80
+                    }
+                }
+            },
+            "dependsOn": [
+                "[variables('ContainerApps.Environment.Id')]"
+            ]
+        },
+        {
+            "name": "dashboardapi",
+            "type": "Microsoft.Web/containerApps",
+            "apiVersion": "2021-03-01",
+            "kind": "containerapp",
+            "location": "[parameters('Location')]",
+            "properties": {
+                "kubeEnvironmentId": "[variables('ContainerApps.Environment.Id')]",
+                "configuration": {
+                    "ingress": {
+                        "external": true,
+                        "targetPort": 5000
+                    }
+                },
+                "template": {
+                    "containers": [
+                        {
+                            "image": "melzayet/ca-operational-api:v0.1",
+                            "name": "dashboardapi",
+                            "env":[
+                                {
+                                "name": "DAPR_HTTP_PORT",
+                                "value": "3500"
+                                },
+                                {
+                                    "name": "TARGET_APP",
+                                    "value": "storeapp"
+                                }
+                            ]
+
+
+                        }
+                    ],
+                    "scale": {
+                        "minReplicas": 1,
+                        "maxReplicas": 1,
+                        "rules": []
+                    },
+                    "dapr": {
+                        "enabled": true,
+                        "appPort": 5000,
+                        "appId": "dashboardapi"
+                    }
+                }
+            },
+            "dependsOn": [
+                "[variables('ContainerApps.Environment.Id')]"
+            ]
+        },
+        {
             "name": "storeapp",
             "type": "Microsoft.Web/containerApps",
             "apiVersion": "2021-03-01",
