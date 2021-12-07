@@ -55,7 +55,7 @@ Optional -  if using Codespaces or not logged into Azure CLI
 
 ```bash
 # Login into Azure CLI
-az login
+az login --use-device-code
 
 # Check you are logged into the right Azure subscription. Inspect the name field
 az account show
@@ -318,7 +318,7 @@ Now let's see scaling in action. To do this, we will generate a large amount of 
 To demonstrate this, a script that uses the `tmux` command is provided in the `scripts` folder of this repository. Run the following commands:
 
 ```bash
-cd /scripts
+cd scripts
 ./appwatch.sh $resourceGroup $dataURL
 ```
 

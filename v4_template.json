@@ -232,7 +232,7 @@
                 "template": {
                     "containers": [
                         {
-                            "image": "melzayet/ca-operational-api:v0.2",
+                            "image": "melzayet/ca-operational-api:v0.3",
                             "name": "dashboardapi",
                             "env":[
                                 {
@@ -367,7 +367,9 @@
                         ]
                     },
                     "dapr": {
-                        "enabled": false
+                        "enabled": true,
+                        "appId": "httpapi",
+                        "appPort": 80
                         }
                 }
             },
