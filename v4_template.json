@@ -196,7 +196,7 @@
                 "template": {
                     "containers": [
                         {
-                            "image": "melzayet/ca-operational-dashboard:v1.02",
+                            "image": "melzayet/ca-operational-dashboard:v1.03",
                             "name": "dashboardapp"
                         }
                     ],
@@ -232,7 +232,7 @@
                 "template": {
                     "containers": [
                         {
-                            "image": "melzayet/ca-operational-api:v0.1",
+                            "image": "melzayet/ca-operational-api:v0.2",
                             "name": "dashboardapi",
                             "env":[
                                 {
