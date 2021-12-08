@@ -239,7 +239,7 @@ az deployment group create \
 With the third iteration of our applications deployed, let's try and send another order.
 
 ```bash
-curl -X POST $dataURL?message=test
+curl -X POST $dataURL?message=secondtest
 ```
 And let's check the Store application again to see if the messages have been received
 
@@ -318,7 +318,7 @@ Now let's see scaling in action. To do this, we will generate a large amount of 
 To demonstrate this, a script that uses the `tmux` command is provided in the `scripts` folder of this repository. Run the following commands:
 
 ```bash
-cd /scripts
+cd scripts
 ./appwatch.sh $resourceGroup $dataURL
 ```
 
