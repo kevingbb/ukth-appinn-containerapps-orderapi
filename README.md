@@ -6,6 +6,19 @@ The purpose of this repo is to help you quickly get hands-on with Container Apps
 * **Squad:** Cloud Native
 * **Duration:** 30 minutes
 
+# Scenario
+As a retailer, you want your customers to place online orders, while providing them the best online experience. This includes an API to receive orders that is able to scale out and in based on demand. You want to asyncronously store and process the orders using a queing mechanism that also needs to be auto-scaled. With a microservices architecture, Container Apps offer a simple experience that allows your developers focus on the services, and not infrastructure.
+
+In this sample you will see how to:
+1.	Deploy the solution and configuration through IaaC, no need to understand Kubernetes
+2.	Ability to troubleshoot using built-in logging capability with Azure Monitor (Log Analytics)
+3.	Out of the box Telemetry with Dapr + Azure Monitor (Log Analytics)
+4.	Ability to split http traffic when deploying a new version
+5.	Ability to configure scaling to meet usage needs
+
+![Image of sample application architecture and how messages flow through queue into store](/images/th-arch.png)
+
+
 ## Pre-requisites
 
 There are two options:
