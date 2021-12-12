@@ -6,6 +6,19 @@ The purpose of this repo is to help you quickly get hands-on with Container Apps
 * **Squad:** Cloud Native
 * **Duration:** 30 minutes
 
+# Scenario
+As a retailer, you want your customers to place online orders, while providing them the best online experience. This includes an API to receive orders that is able to scale out and in based on demand. You want to asyncronously store and process the orders using a queing mechanism that also needs to be auto-scaled. With a microservices architecture, Container Apps offer a simple experience that allows your developers focus on the services, and not infrastructure.
+
+In this sample you will see how to:
+1.	Deploy the solution and configuration through IaaC, no need to understand Kubernetes
+2.	Ability to troubleshoot using built-in logging capability with Azure Monitor (Log Analytics)
+3.	Out of the box Telemetry with Dapr + Azure Monitor (Log Analytics)
+4.	Ability to split http traffic when deploying a new version
+5.	Ability to configure scaling to meet usage needs
+
+![Image of sample application architecture and how messages flow through queue into store](/images/th-arch.png)
+
+
 ## Pre-requisites
 
 There are two options:
@@ -55,7 +68,7 @@ Optional -  if using Codespaces or not logged into Azure CLI
 
 ```bash
 # Login into Azure CLI
-az login
+az login --use-device-code
 
 # Check you are logged into the right Azure subscription. Inspect the name field
 az account show
@@ -278,7 +291,7 @@ So, is our app ready for primetime now? Let's change things so that the new app 
 
 ## Deploy version 4
 
-One final time, we'll now deploy the new configuration with scaling configured.
+One final time, we'll now deploy the new configuration with scaling configured. We will also add a simple dashboard for monitoring the messages flow.
 
 
 ```bash
@@ -317,11 +330,6 @@ Now let's see scaling in action. To do this, we will generate a large amount of 
 
 To demonstrate this, a script that uses the `tmux` command is provided in the `scripts` folder of this repository. Run the following commands:
 
-```bash
-cd scripts
-./appwatch.sh $resourceGroup $dataURL
-```
-
 This will split your terminal into four separate views. 
 
 - On the left, you will see the output from the `hey` command. It's going to send 10,000 requests to the application, so there will be a short delay, around 20 to 30 seconds, whilst the requests are sent. Once the `hey` command finishes, it should report its results.
@@ -329,6 +337,17 @@ This will split your terminal into four separate views.
 - Also on the right, in the middle, you should see the current count of messages in the queue. This will increase to 10,000 and then slowly decrease as the app works it way through the queue.
 
 Once `hey` has finished generating messages, the number of instances of the HTTP API application should start to scale up and eventually max out at 10 replicas. After the number of messages in the queue reduces to zero, you should see the number of replicas scale down and return to 1.
+
+```bash
+cd scripts
+./appwatch.sh $resourceGroup $dataURL
+```
+
+[Optional] While the scaling script is running, you can also go to an operations dashboard that shows the messages flowing through queue into the store
+```bash
+dashboardURL=https://dashboardapp.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'defaultDomain' -o tsv)
+echo 'Open the URL in your browser of choice:' $dashboardURL
+```
 
 ### Cleanup
 
