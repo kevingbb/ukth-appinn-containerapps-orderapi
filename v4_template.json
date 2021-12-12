@@ -124,7 +124,7 @@
                     "secrets": [
                     {
                         "name": "queueconnection",
-                        "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('StorageAccount.Name'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('StorageAccount.Name')), variables('StorageAccount.ApiVersion')).keys[0].value)]"
+                        "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('StorageAccount.Name'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('StorageAccount.Name')), variables('StorageAccount.ApiVersion')).keys[0].value, ';EndpointSuffix=core.windows.net')]"
                     }]
                 },
                 "template": {
@@ -149,7 +149,7 @@
                         }
                     ],
                     "scale": {
-                        "minReplicas": 1,
+                        "minReplicas": 0,
                         "maxReplicas": 5,
                         "rules": [
                             {
@@ -331,7 +331,7 @@
                     "secrets": [
                     {
                         "name": "queueconnection",
-                        "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('StorageAccount.Name'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('StorageAccount.Name')), variables('StorageAccount.ApiVersion')).keys[0].value)]"
+                        "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('StorageAccount.Name'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('StorageAccount.Name')), variables('StorageAccount.ApiVersion')).keys[0].value, ';EndpointSuffix=core.windows.net')]"
                     }]
                 },
                 "template": {

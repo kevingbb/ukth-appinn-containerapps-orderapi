@@ -252,7 +252,7 @@ az deployment group create \
 With the third iteration of our applications deployed, let's try and send another order.
 
 ```bash
-curl -X POST $dataURL?message=test
+curl -X POST $dataURL?message=secondtest
 ```
 And let's check the Store application again to see if the messages have been received
 
@@ -330,17 +330,6 @@ Now let's see scaling in action. To do this, we will generate a large amount of 
 
 To demonstrate this, a script that uses the `tmux` command is provided in the `scripts` folder of this repository. Run the following commands:
 
-[Optional] While the scaling script is running, you can also go to an operations dashaboard that shows the messages flowing through queue into the store
-```bash
-dashboardURL=https://dashboardapp.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'defaultDomain' -o tsv)
-echo 'Open the URL in your browser of choice:' $dashboardURL
-```
-
-```bash
-cd scripts
-./appwatch.sh $resourceGroup $dataURL
-```
-
 This will split your terminal into four separate views. 
 
 - On the left, you will see the output from the `hey` command. It's going to send 10,000 requests to the application, so there will be a short delay, around 20 to 30 seconds, whilst the requests are sent. Once the `hey` command finishes, it should report its results.
@@ -349,6 +338,16 @@ This will split your terminal into four separate views.
 
 Once `hey` has finished generating messages, the number of instances of the HTTP API application should start to scale up and eventually max out at 10 replicas. After the number of messages in the queue reduces to zero, you should see the number of replicas scale down and return to 1.
 
+```bash
+cd scripts
+./appwatch.sh $resourceGroup $dataURL
+```
+
+[Optional] While the scaling script is running, you can also go to an operations dashboard that shows the messages flowing through queue into the store
+```bash
+dashboardURL=https://dashboardapp.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'defaultDomain' -o tsv)
+echo 'Open the URL in your browser of choice:' $dashboardURL
+```
 
 ### Cleanup
 
