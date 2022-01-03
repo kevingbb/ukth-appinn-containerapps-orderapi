@@ -338,15 +338,16 @@ This will split your terminal into four separate views.
 
 Once `hey` has finished generating messages, the number of instances of the HTTP API application should start to scale up and eventually max out at 10 replicas. After the number of messages in the queue reduces to zero, you should see the number of replicas scale down and return to 1.
 
-```bash
-cd scripts
-./appwatch.sh $resourceGroup $dataURL
-```
 
-[Optional] While the scaling script is running, you can also go to an operations dashboard that shows the messages flowing through queue into the store
+[Optional] While the scaling script is running, you can also have this operations dashboard open to visually see the messages flowing through queue into the store
 ```bash
 dashboardURL=https://dashboardapp.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'defaultDomain' -o tsv)
 echo 'Open the URL in your browser of choice:' $dashboardURL
+```
+
+```bash
+cd scripts
+./appwatch.sh $resourceGroup $dataURL
 ```
 
 ### Cleanup
