@@ -217,7 +217,7 @@
             "properties": {
                 "kubeEnvironmentId": "[variables('ContainerApps.Environment.Id')]",
                 "configuration": {
-                    "activeRevisionsMode": "Single",
+                    "activeRevisionsMode": "multiple",
                     "ingress": {
                         "external": true,
                         "targetPort": 80
@@ -229,6 +229,7 @@
                     }]
                 },
                 "template": {
+                    "revisionSuffix": "[parameters('ContainerApps.HttpApi.CurrentRevisionName')]",
                     "containers": [
                         {
                             "image": "kevingbb/httpapiapp:v1",

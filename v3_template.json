@@ -221,7 +221,7 @@
             "properties": {
                 "kubeEnvironmentId": "[variables('ContainerApps.Environment.Id')]",
                 "configuration": {
-                    "activeRevisionsMode": "Multiple",
+                    "activeRevisionsMode": "multiple",
                     "ingress": {
                         "external": true,
                         "targetPort": 80,

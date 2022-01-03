@@ -7,7 +7,7 @@ The purpose of this repo is to help you quickly get hands-on with Container Apps
 * **Duration:** 30 minutes
 
 # Scenario
-As a retailer, you want your customers to place online orders, while providing them the best online experience. This includes an API to receive orders that is able to scale out and in based on demand. You want to asyncronously store and process the orders using a queing mechanism that also needs to be auto-scaled. With a microservices architecture, Container Apps offer a simple experience that allows your developers focus on the services, and not infrastructure.
+As a retailer, you want your customers to place online orders, while providing them the best online experience. This includes an API to receive orders that is able to scale out and in based on demand. You want to asynchronously store and process the orders using a queing mechanism that also needs to be auto-scaled. With a microservices architecture, Container Apps offer a simple experience that allows your developers focus on the services, and not infrastructure.
 
 In this sample you will see how to:
 1.	Deploy the solution and configuration through IaaC, no need to understand Kubernetes
@@ -182,6 +182,7 @@ curl $storeURL
 Ok, that's something but that's not the message we sent. Let's take a look at the application code
 
 **DataController.cs**
+
 ```c#
 ...
   [HttpPost]
@@ -199,13 +200,14 @@ Ok, that's something but that's not the message we sent. Let's take a look at th
 It looks like the code is set to send a GUID, not the message itself. Must have been something the developer left in to test things out. Let's modify that code:
 
 **DataController.cs** (version 2)
+
 ```c#
   [HttpPost]
   public async Task PostAsync(string message)
   {
       try
       {
-          await queueClient.SendMessageAsync(message + DateTimeOffset.Now.ToString());
+          await queueClient.SendMessageAsync(DateTimeOffset.Now.ToString() + " -- " + message);
 
           Ok();
       }
@@ -232,6 +234,7 @@ To implement the traffic split, the following has been added to the deployment t
           }
       ]
 ```
+
 Effectively, we're asking for 80% of traffic to be sent to the current version (revision) of the application and 20% to be sent to the new version that's about to be deployed.
 
 ## Deploy version 3
@@ -260,8 +263,18 @@ And let's check the Store application again to see if the messages have been rec
 curl $storeURL | jq
 ```
 
-> `[{"id":"f30e1eb6-d9d1-458b-b8d3-327e5597ffc7","message":"57e88c1e-f4a4-4c66-8eb5-128bb235b08d"},
-> {"id":"6365dabd-2971-4ccb-a615-dd11c9bbbc3a","message":"test12/01/2021 15:14:43 +00:00"}]`
+```json
+[
+  {
+    "id": "b205d410-5150-4ac6-9e26-7079ebcae67b",
+    "message": "a39ecc22-cece-4442-851e-25d7329a1f55"
+  },
+  {
+    "id": "318e72bb-8c55-486c-99ec-18a5bd76bc1d",
+    "message": "01/03/2022 13:28:33 +00:00 -- secondtest"
+  }
+]
+```
 
 That's looking better. We can still see the original message, but we can also now see our "test" message with the date and time appended to it.
 
