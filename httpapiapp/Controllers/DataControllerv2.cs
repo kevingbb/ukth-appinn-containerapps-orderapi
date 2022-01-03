@@ -36,7 +36,7 @@
 //             {
 //                 // await queueClient.SendMessageAsync(Guid.NewGuid().ToString());
 //                 //TODO: Fix, message is not being sent.
-//                 await queueClient.SendMessageAsync(message + DateTimeOffset.Now.ToString());
+//                 await queueClient.SendMessageAsync(DateTimeOffset.Now.ToString() + " -- " + message);
 
 //                 Ok();
 //             }
