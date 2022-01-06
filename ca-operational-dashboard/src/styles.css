@@ -1,0 +1,13 @@
+.App {
+    font-family: sans-serif;
+    width: 100%;
+    text-align: center;
+    align-content: center;
+    
+    
+  }
+  .Chart{
+    width: 48%;
+    float: left;
+    padding: 1%;
+  }
