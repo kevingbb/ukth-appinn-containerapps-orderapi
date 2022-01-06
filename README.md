@@ -2,7 +2,7 @@
 
 The purpose of this repo is to help you quickly get hands-on with Container Apps. It is meant to be consumed either through GitHub codespaces or through a local Dev Container. The idea being that everything you need from tooling to runtimes is already included in the Dev Container so it should be as simple as executing a run command.
 
-* **Date:** 13th December 2021
+* **Date:** 10th January 2022
 * **Squad:** Cloud Native
 * **Duration:** 30 minutes
 
