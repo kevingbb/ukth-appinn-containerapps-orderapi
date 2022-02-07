@@ -341,6 +341,12 @@ ContainerAppConsoleLogs_CL
 
 Now let's see scaling in action. To do this, we will generate a large amount of messages which should cause the applications to scale up to cope with the demand.
 
+> [Optional] While the scaling script is running, you can also have this operations dashboard open to visually see the messages flowing through queue into the store
+> ```bash
+> dashboardURL=https://dashboardapp.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'defaultDomain' -o tsv)
+> echo 'Open the URL in your browser of choice:' $dashboardURL
+> ```
+
 To demonstrate this, a script that uses the `tmux` command is provided in the `scripts` folder of this repository. Run the following commands:
 
 ```bash
@@ -355,13 +361,6 @@ This will split your terminal into four separate views.
 - Also on the right, in the middle, you should see the current count of messages in the queue. This will increase to 10,000 and then slowly decrease as the app works it way through the queue.
 
 Once `hey` has finished generating messages, the number of instances of the HTTP API application should start to scale up and eventually max out at 10 replicas. After the number of messages in the queue reduces to zero, you should see the number of replicas scale down and return to 1.
-
-
-[Optional] While the scaling script is running, you can also have this operations dashboard open to visually see the messages flowing through queue into the store
-```bash
-dashboardURL=https://dashboardapp.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'defaultDomain' -o tsv)
-echo 'Open the URL in your browser of choice:' $dashboardURL
-```
 
 > Tip! To exit from tmux when you're finished, type `CTRL-b`, then `:` and then the command `kill-session`
 
