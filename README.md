@@ -6,27 +6,28 @@ The purpose of this repo is to help you quickly get hands-on with Container Apps
 * **Squad:** Cloud Native
 * **Duration:** 30 minutes
 
-# Scenario
+## Scenario
+
 As a retailer, you want your customers to place online orders, while providing them the best online experience. This includes an API to receive orders that is able to scale out and in based on demand. You want to asynchronously store and process the orders using a queing mechanism that also needs to be auto-scaled. With a microservices architecture, Container Apps offer a simple experience that allows your developers focus on the services, and not infrastructure.
 
 In this sample you will see how to:
-1.	Deploy the solution and configuration through IaaC, no need to understand Kubernetes
-2.	Ability to troubleshoot using built-in logging capability with Azure Monitor (Log Analytics)
-3.	Out of the box Telemetry with Dapr + Azure Monitor (Log Analytics)
-4.	Ability to split http traffic when deploying a new version
-5.	Ability to configure scaling to meet usage needs
+
+1. Deploy the solution and configuration through IaaC, no need to understand Kubernetes
+2. Ability to troubleshoot using built-in logging capability with Azure Monitor (Log Analytics)
+3. Out of the box Telemetry with Dapr + Azure Monitor (Log Analytics)
+4. Ability to split http traffic when deploying a new version
+5. Ability to configure scaling to meet usage needs
 
 ![Image of sample application architecture and how messages flow through queue into store](/images/th-arch.png)
 
-
-## Pre-requisites
+### Pre-requisites
 
 There are two options:
 
 1. [Access to GitHub Codespaces](#getting-started-via-codespaces)
 1. [VS Code + Docker Desktop on Local Machine](#getting-started-via-vs-code-and-local-dev-container)
 
-## Getting Started
+### Getting Started
 
 As this is currently a preview service, you will need to install an Azure CLI extension to work with Container Apps.
 
@@ -43,9 +44,9 @@ We will be using the `hey` load testing tool later on. If you are using Codespac
 brew install hey
 ```
 
-If you are using an environment other than Codespaces, you can find installation instructions for `hey` here - https://github.com/rakyll/hey
+If you are using an environment other than Codespaces, you can find installation instructions for `hey` here - [https://github.com/rakyll/hey](https://github.com/rakyll/hey)
 
-## Setup Solution
+### Setup Solution
 
 Let's start by setting some variables that we will use for creating Azure resources in this demo, and a resource group for those resources to reside in.
 
@@ -78,14 +79,13 @@ az account set -s <subscription-id>
 
 ```
 
-
 ```bash
 
 # Create Resource Group
 az group create --name $resourceGroup --location $location -o table
 ```
 
-## Deploy version 1 of the application
+### Deploy version 1 of the application
 
 We'll deploy the first version of the application to Azure. This typically takes around 3 to 5 minutes to complete.
 
@@ -118,7 +118,7 @@ The response you should see is `[]` which means no data was returned. Something'
 
 ContainerApps integrates with Application Insights and Log Analytics. In the Azure Portal, go to the Log Analytics workspace in the resource group we're using for this demo and run the following query to view the logs for the `queuereader` application.
 
-```
+```text
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s has "queuereader" and ContainerName_s has "queuereader"
 | where Log_s has "null"
@@ -126,13 +126,22 @@ ContainerAppConsoleLogs_CL
 | order by TimeGenerated desc
 ```
 
+Alternatively, if you prefer to stay in the CLI, you can run the Log Analytics query from there.
+
+```bash
+workspaceId=$(az monitor log-analytics workspace show -n $logAnalytics -g $resourceGroup --query "customerId" -o tsv)
+az monitor log-analytics query -w $workspaceId --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s has 'queuereader' and ContainerName_s has 'queuereader' | where Log_s has 'null' | project TimeGenerated, ContainerAppName_s, RevisionName_s, ContainerName_s, Log_s | order by TimeGenerated desc"
+```
+
 You should see a number of log file entries which will likely all contain the same error. Drill down on one of them to reveal more. You should see something like the following:
 
 ![Image of an Azure Log Analytics log entry showing an error from the queuereader application indicating that a config value is missing](/images/LogAnalyticsDaprPortError.png)
 
+> "Log_s": "      Value cannot be null. (Parameter ''DaprPort' config value is required. Please add an environemnt variable or app setting.')",
+
 Looks like we're missing a configuration value relating to Dapr. So, we've gone ahead and made the necessary changes to our code and packaged that up in version 2 of our application's container. Let's deploy version 2.
 
-## Deploy Version 2
+### Deploy Version 2
 
 We'll repeat the deployment command from earlier, but we've updated our template to use version 2 of the queuereader application.
 
@@ -219,7 +228,7 @@ But maybe we should be cautious and make sure this new change is working as expe
 
 To implement the traffic split, the following has been added to the deployment template
 
-```
+```json
   "ingress": {
       "external": true,
       "targetPort": 80,
@@ -237,7 +246,7 @@ To implement the traffic split, the following has been added to the deployment t
 
 Effectively, we're asking for 80% of traffic to be sent to the current version (revision) of the application and 20% to be sent to the new version that's about to be deployed.
 
-## Deploy version 3
+### Deploy version 3
 
 Once again, let's repeat the deployment command from earlier, now using version 2 of the HTTP API application and with traffic splitting configured
 
@@ -257,6 +266,7 @@ With the third iteration of our applications deployed, let's try and send anothe
 ```bash
 curl -X POST $dataURL?message=secondtest
 ```
+
 And let's check the Store application again to see if the messages have been received
 
 ```bash
@@ -290,7 +300,7 @@ curl $storeURL | jq
 
 Let's check the application logs for the Queue Reader application
 
-```
+```text
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s has "queuereader" and ContainerName_s has "queuereader"
 | where Log_s has "Message"
@@ -305,7 +315,6 @@ So, is our app ready for primetime now? Let's change things so that the new app 
 ## Deploy version 4
 
 One final time, we'll now deploy the new configuration with scaling configured. We will also add a simple dashboard for monitoring the messages flow.
-
 
 ```bash
 az deployment group create \
@@ -325,13 +334,14 @@ hey -m POST -n 10 -c 1 $dataURL?message=testscale
 ```
 
 Let's check the number of orders in the queue
+
 ```bash
 curl $dataURL
 ```
 
 As before, we can check the application log files in Log Analytics to see what messages are being received
 
-```
+```text
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s has "queuereader" and ContainerName_s has "queuereader"
 | where Log_s has "Message"
@@ -342,6 +352,7 @@ ContainerAppConsoleLogs_CL
 Now let's see scaling in action. To do this, we will generate a large amount of messages which should cause the applications to scale up to cope with the demand.
 
 > [Optional] While the scaling script is running, you can also have this operations dashboard open to visually see the messages flowing through queue into the store
+
 > ```bash
 > dashboardURL=https://dashboardapp.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'defaultDomain' -o tsv)
 > echo 'Open the URL in your browser of choice:' $dashboardURL
@@ -354,11 +365,11 @@ cd scripts
 ./appwatch.sh $resourceGroup $dataURL
 ```
 
-This will split your terminal into four separate views. 
+This will split your terminal into four separate views.
 
-- On the left, you will see the output from the `hey` command. It's going to send 10,000 requests to the application, so there will be a short delay, around 20 to 30 seconds, whilst the requests are sent. Once the `hey` command finishes, it should report its results.
-- On the right at the top, you will see a list of the container app versions (revisions) that we've deployed. One of these will be the latest version that we just deployed. As `hey` sends more and more messages, you should notice that one of these revisions of the app starts to increase its replica count
-- Also on the right, in the middle, you should see the current count of messages in the queue. This will increase to 10,000 and then slowly decrease as the app works it way through the queue.
+* On the left, you will see the output from the `hey` command. It's going to send 10,000 requests to the application, so there will be a short delay, around 20 to 30 seconds, whilst the requests are sent. Once the `hey` command finishes, it should report its results.
+* On the right at the top, you will see a list of the container app versions (revisions) that we've deployed. One of these will be the latest version that we just deployed. As `hey` sends more and more messages, you should notice that one of these revisions of the app starts to increase its replica count
+* Also on the right, in the middle, you should see the current count of messages in the queue. This will increase to 10,000 and then slowly decrease as the app works it way through the queue.
 
 Once `hey` has finished generating messages, the number of instances of the HTTP API application should start to scale up and eventually max out at 10 replicas. After the number of messages in the queue reduces to zero, you should see the number of replicas scale down and return to 1.
 
