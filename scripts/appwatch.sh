@@ -8,6 +8,7 @@ echo "Usage: appwatch.sh resource_group_name"
 exit 1
 fi
 
+sudo apt update
 sudo apt install tmux -y
 
 tmux new-session -d -s containerapps
