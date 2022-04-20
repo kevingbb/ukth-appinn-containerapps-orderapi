@@ -126,12 +126,12 @@ namespace QueueWorker
 
             if (string.IsNullOrEmpty(daprPort))
             {
-                throw new ArgumentNullException("'DaprPort' config value is required. Please add an environemnt variable or app setting.");
+                throw new ArgumentNullException("'DaprPort' config value is required. Please add an environment variable or app setting.");
             }
 
             if (string.IsNullOrEmpty(targetApp))
             {
-                throw new ArgumentNullException("'TargetApp' config value is required. Please add an environemnt variable or app setting.");
+                throw new ArgumentNullException("'TargetApp' config value is required. Please add an environment variable or app setting.");
             }
 
             Uri storeUrl = new Uri($"http://localhost:{daprPort}/v1.0/invoke/{targetApp}/method/store");

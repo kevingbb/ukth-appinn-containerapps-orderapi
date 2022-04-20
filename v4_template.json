@@ -27,7 +27,7 @@
     "variables": {
         "StorageAccount.ApiVersion": "2018-07-01",
         "StorageAccount.Queue.Name": "demoqueue",
-        "ContainerApps.Environment.Id": "[resourceId('Microsoft.Web/kubeEnvironments/', parameters('ContainerApps.Environment.Name'))]",
+        "ContainerApps.Environment.Id": "[resourceId('Microsoft.App/managedEnvironments/', parameters('ContainerApps.Environment.Name'))]",
         "Workspace.Resource.Id": "[resourceId('Microsoft.OperationalInsights/workspaces/', parameters('LogAnalytics.Workspace.Name'))]"
     },
     "resources": [
@@ -88,8 +88,8 @@
             }
         },
         {
-            "type": "Microsoft.Web/kubeEnvironments",
-            "apiVersion": "2021-02-01",
+            "type": "Microsoft.App/managedEnvironments",
+            "apiVersion": "2022-01-01-preview",
             "name": "[parameters('ContainerApps.Environment.Name')]",
             "location": "[parameters('Location')]",
             "tags": {},
@@ -113,19 +113,23 @@
         },
         {
             "name": "queuereader",
-            "type": "Microsoft.Web/containerApps",
-            "apiVersion": "2021-03-01",
+            "type": "Microsoft.App/containerApps",
+            "apiVersion": "2022-01-01-preview",
             "kind": "containerapp",
             "location": "[parameters('Location')]",
             "properties": {
-                "kubeEnvironmentId": "[variables('ContainerApps.Environment.Id')]",
+                "managedEnvironmentId": "[variables('ContainerApps.Environment.Id')]",
                 "configuration": {
                     "activeRevisionsMode": "single",
                     "secrets": [
                     {
                         "name": "queueconnection",
                         "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('StorageAccount.Name'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('StorageAccount.Name')), variables('StorageAccount.ApiVersion')).keys[0].value, ';EndpointSuffix=core.windows.net')]"
-                    }]
+                    }],
+                    "dapr": {
+                        "enabled": true,
+                        "appId": "queuereader"
+                    }
                 },
                 "template": {
                     "containers": [
@@ -169,9 +173,6 @@
                                 }
                             }
                         ]
-                    },
-                    "dapr": {
-                        "enabled": true
                     }
                 }
             },
@@ -181,16 +182,22 @@
         },
         {
             "name": "dashboardapp",
-            "type": "Microsoft.Web/containerApps",
-            "apiVersion": "2021-03-01",
+            "type": "Microsoft.App/containerApps",
+            "apiVersion": "2022-01-01-preview",
             "kind": "containerapp",
             "location": "[parameters('Location')]",
             "properties": {
-                "kubeEnvironmentId": "[variables('ContainerApps.Environment.Id')]",
+                "managedEnvironmentId": "[variables('ContainerApps.Environment.Id')]",
                 "configuration": {
                     "ingress": {
                         "external": true,
                         "targetPort": 80
+                    },
+                    "dapr": {
+                        "enabled": true,
+                        "appId": "dashboardapp",
+                        "appProcotol": "http",
+                        "appPort": 80
                     }
                 },
                 "template": {
@@ -204,10 +211,6 @@
                         "minReplicas": 1,
                         "maxReplicas": 1,
                         "rules": []
-                    },
-                    "dapr": {
-                        "enabled": true,
-                        "appPort": 80
                     }
                 }
             },
@@ -217,16 +220,22 @@
         },
         {
             "name": "dashboardapi",
-            "type": "Microsoft.Web/containerApps",
-            "apiVersion": "2021-03-01",
+            "type": "Microsoft.App/containerApps",
+            "apiVersion": "2022-01-01-preview",
             "kind": "containerapp",
             "location": "[parameters('Location')]",
             "properties": {
-                "kubeEnvironmentId": "[variables('ContainerApps.Environment.Id')]",
+                "managedEnvironmentId": "[variables('ContainerApps.Environment.Id')]",
                 "configuration": {
                     "ingress": {
                         "external": true,
                         "targetPort": 5000
+                    },
+                    "dapr": {
+                        "enabled": true,
+                        "appId": "dashboardapi",
+                        "appProcotol": "http",
+                        "appPort": 5000
                     }
                 },
                 "template": {
@@ -252,11 +261,6 @@
                         "minReplicas": 1,
                         "maxReplicas": 1,
                         "rules": []
-                    },
-                    "dapr": {
-                        "enabled": true,
-                        "appPort": 5000,
-                        "appId": "dashboardapi"
                     }
                 }
             },
@@ -266,16 +270,22 @@
         },
         {
             "name": "storeapp",
-            "type": "Microsoft.Web/containerApps",
-            "apiVersion": "2021-03-01",
+            "type": "Microsoft.App/containerApps",
+            "apiVersion": "2022-01-01-preview",
             "kind": "containerapp",
             "location": "[parameters('Location')]",
             "properties": {
-                "kubeEnvironmentId": "[variables('ContainerApps.Environment.Id')]",
+                "managedEnvironmentId": "[variables('ContainerApps.Environment.Id')]",
                 "configuration": {
                     "ingress": {
                         "external": true,
                         "targetPort": 3000
+                    },
+                    "dapr": {
+                        "enabled": true,
+                        "appId": "storeapp",
+                        "appProcotol": "http",
+                        "appPort": 3000
                     }
                 },
                 "template": {
@@ -289,10 +299,6 @@
                         "minReplicas": 1,
                         "maxReplicas": 1,
                         "rules": []
-                    },
-                    "dapr": {
-                        "enabled": true,
-                        "appPort": 3000
                     }
                 }
             },
@@ -302,12 +308,12 @@
         },
         {
             "name": "httpapi",
-            "type": "Microsoft.Web/containerApps",
-            "apiVersion": "2021-03-01",
+            "type": "Microsoft.App/containerApps",
+            "apiVersion": "2022-01-01-preview",
             "kind": "containerapp",
             "location": "[parameters('Location')]",
             "properties": {
-                "kubeEnvironmentId": "[variables('ContainerApps.Environment.Id')]",
+                "managedEnvironmentId": "[variables('ContainerApps.Environment.Id')]",
                 "configuration": {
                     "activeRevisionsMode": "multiple",
                     "ingress": {
@@ -332,7 +338,13 @@
                     {
                         "name": "queueconnection",
                         "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('StorageAccount.Name'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('StorageAccount.Name')), variables('StorageAccount.ApiVersion')).keys[0].value, ';EndpointSuffix=core.windows.net')]"
-                    }]
+                    }],
+                    "dapr": {
+                        "enabled": true,
+                        "appId": "httpapi",
+                        "appProcotol": "http",
+                        "appPort": 80
+                    }
                 },
                 "template": {
                     "revisionSuffix": "[parameters('ContainerApps.HttpApi.NewRevisionName')]",
@@ -365,12 +377,7 @@
                                 }
                             }
                         ]
-                    },
-                    "dapr": {
-                        "enabled": true,
-                        "appId": "httpapi",
-                        "appPort": 80
-                        }
+                    }
                 }
             },
             "dependsOn": [

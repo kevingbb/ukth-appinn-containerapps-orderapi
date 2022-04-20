@@ -20,9 +20,9 @@ tmux split-window -v
 
 tmux send-keys -t 0 "hey -m POST -n 10000 -c 10 $DATAURL?message=loadtest" C-m
 
-tmux send-keys -t 1 "watch 'az containerapp revision list -g $RESOURCEGROUP -n queuereader --query [].{Revision:name,Replicas:replicas,Active:active,Created:createdTime} -o table' 2\>\/dev\/null" C-m
+tmux send-keys -t 1 "watch 'az containerapp revision list -g $RESOURCEGROUP -n queuereader --query [].{Revision:name,Replicas:properties.replicas,Active:properties.active,Created:properties.createdTime} -o table' 2\>\/dev\/null" C-m
 
-tmux send-keys -t 2 "watch 'az containerapp revision list -g $RESOURCEGROUP -n httpapi --query [].{Revision:name,Replicas:replicas,Active:active,Created:createdTime} -o table' 2\>\/dev\/null" C-m
+tmux send-keys -t 2 "watch 'az containerapp revision list -g $RESOURCEGROUP -n httpapi --query [].{Revision:name,Replicas:properties.replicas,Active:properties.active,Created:properties.createdTime} -o table' 2\>\/dev\/null" C-m
 
 tmux send-keys -t 3 "watch 'curl -s $DATAURL'" C-m
 

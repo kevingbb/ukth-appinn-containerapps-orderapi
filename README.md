@@ -34,8 +34,7 @@ As this is currently a preview service, you will need to install an Azure CLI ex
 Run the following command.
 
 ```bash
-az extension add \
-  --source https://workerappscliextension.blob.core.windows.net/azure-cli-extension/containerapp-0.2.0-py2.py3-none-any.whl
+az extension add --name containerapp
 ```
 
 We will be using the `hey` load testing tool later on. If you are using Codespaces, the container includes Homebrew, so you can install `hey` like this:
@@ -103,7 +102,7 @@ az deployment group create \
 Now the application is deployed, let's determine the URL we'll need to use to access it and store that in a variable for convenience
 
 ```bash
-storeURL=https://storeapp.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'defaultDomain' -o tsv)/store
+storeURL=https://storeapp.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'properties.defaultDomain' -o tsv)/store
 ```
 
 Let's see what happens if we call the URL of the store with curl.
@@ -137,7 +136,7 @@ You should see a number of log file entries which will likely all contain the sa
 
 ![Image of an Azure Log Analytics log entry showing an error from the queuereader application indicating that a config value is missing](/images/LogAnalyticsDaprPortError.png)
 
-> "Log_s": "      Value cannot be null. (Parameter ''DaprPort' config value is required. Please add an environemnt variable or app setting.')",
+> "Log_s": "      Value cannot be null. (Parameter ''DaprPort' config value is required. Please add an environment variable or app setting.')",
 
 Looks like we're missing a configuration value relating to Dapr. So, we've gone ahead and made the necessary changes to our code and packaged that up in version 2 of our application's container. Let's deploy version 2.
 
@@ -159,7 +158,7 @@ az deployment group create \
 This time, we'll store the URL for the HTTP API application in a variable
 
 ```bash
-dataURL=https://httpapi.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'defaultDomain' -o tsv)/Data
+dataURL=https://httpapi.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'properties.defaultDomain' -o tsv)/Data
 ```
 
 Now let's see what happens if we access that URL
@@ -354,7 +353,7 @@ Now let's see scaling in action. To do this, we will generate a large amount of 
 > [Optional] While the scaling script is running, you can also have this operations dashboard open to visually see the messages flowing through queue into the store
 
 > ```bash
-> dashboardURL=https://dashboardapp.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'defaultDomain' -o tsv)
+> dashboardURL=https://dashboardapp.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'properties.defaultDomain' -o tsv)
 > echo 'Open the URL in your browser of choice:' $dashboardURL
 > ```
 
