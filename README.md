@@ -395,6 +395,11 @@ Once `hey` has finished generating messages, the number of instances of the HTTP
 
 > Tip! To exit from tmux when you're finished, type `CTRL-b`, then `:` and then the command `kill-session`
 
+## Deploy version 5
+
+Until now we have 
+
+
 ### Cleanup
 
 Deleting the Azure resource group should remove everything associated with this demo.
