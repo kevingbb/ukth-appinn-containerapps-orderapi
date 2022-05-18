@@ -61,6 +61,18 @@ location=northeurope
 containerAppEnv=${name}-env
 logAnalytics=${name}-la
 appInsights=${name}-ai
+storageAccount=$(echo $name | tr -d -)sa
+```
+
+```powershell
+# Set variables for the rest of the demo
+
+resourceGroup=${name}-rg
+location=northeurope
+containerAppEnv=${name}-env
+logAnalytics=${name}-la
+appInsights=${name}-ai
+storageAccount=$(echo $name | tr -d -)sa
 ```
 
 Optional -  if using Codespaces or not logged into Azure CLI
@@ -83,6 +95,12 @@ az account set -s <subscription-id>
 az group create --name $resourceGroup --location $location -o table
 ```
 
+```bash
+
+# Create Resource Group
+New-AzResourceGroup -Name cont -Location westeurope
+```
+
 ### Deploy version 1 of the application
 
 We'll deploy the first version of the application to Azure. This typically takes around 3 to 5 minutes to complete.
@@ -90,11 +108,16 @@ We'll deploy the first version of the application to Azure. This typically takes
 ```bash
 az deployment group create \
   -g $resourceGroup \
-  --template-file v1_template.bicep \
-  --parameters @v1_parametersbicep.json \
-  --parameters ContainerApps.Environment_Name=$containerAppEnv \
-    LogAnalytics_Workspace.Name=$logAnalytics \
-    AppInsights_Name=$appInsights 
+  --template-file v1_template.json \
+  --parameters @v1_parameters.json \
+  --parameters ContainerApps.Environment.Name=$containerAppEnv \
+    LogAnalytics.Workspace.Name=$logAnalytics \
+    AppInsights.Name=$appInsights \
+    StorageAccount.Name=$storageAccount
+```
+
+```powershell
+New-AzResourceGroupDeployment -Name "carpediem" -ResourceGroupName "cont" -TemplateParameterFile .\v4_parametersbicep.json -TemplateFile .\v4_template.bicep -Verbose
 ```
 
 Now the application is deployed, let's determine the URL we'll need to use to access it and store that in a variable for convenience
@@ -145,11 +168,12 @@ We'll repeat the deployment command from earlier, but we've updated our template
 ```bash
 az deployment group create \
   -g $resourceGroup \
-  --template-file v2_template.bicep \
-  --parameters @v2_parametersbicep.json \
-  --parameters ContainerApps_Environment.Name=$containerAppEnv \
-    LogAnalytics_Workspace.Name=$logAnalytics \
-    AppInsights_Name=$appInsights 
+  --template-file v2_template.json \
+  --parameters @v2_parameters.json \
+  --parameters ContainerApps.Environment.Name=$containerAppEnv \
+    LogAnalytics.Workspace.Name=$logAnalytics \
+    AppInsights.Name=$appInsights \
+    StorageAccount.Name=$storageAccount
 ```
 
 This time, we'll store the URL for the HTTP API application in a variable
@@ -249,11 +273,12 @@ Once again, let's repeat the deployment command from earlier, now using version 
 ```bash
 az deployment group create \
   -g $resourceGroup \
-  --template-file v3_template.bicep \
-  --parameters @v3_parametersbicep.json \
-  --parameters ContainerApps_Environment_Name=$containerAppEnv \
-    LogAnalytics_Workspace_Name=$logAnalytics \
-    AppInsights_Name=$appInsights 
+  --template-file v3_template.json \
+  --parameters @v3_parameters.json \
+  --parameters ContainerApps.Environment.Name=$containerAppEnv \
+    LogAnalytics.Workspace.Name=$logAnalytics \
+    AppInsights.Name=$appInsights \
+    StorageAccount.Name=$storageAccount
 ```
 
 With the third iteration of our applications deployed, let's try and send another order.
@@ -314,11 +339,12 @@ One final time, we'll now deploy the new configuration with scaling configured. 
 ```bash
 az deployment group create \
   -g $resourceGroup \
-  --template-file v4_template.bicep \
-  --parameters @v4_parametersbicep.json \
-  --parameters ContainerApps_Environment_Name=$containerAppEnv \
-    LogAnalytics_Workspace_Name=$logAnalytics \
-    AppInsights_Name=$appInsights 
+  --template-file v4_template.json \
+  --parameters @v4_parameters.json \
+  --parameters ContainerApps.Environment.Name=$containerAppEnv \
+    LogAnalytics.Workspace.Name=$logAnalytics \
+    AppInsights.Name=$appInsights \
+    StorageAccount.Name=$storageAccount
 ```
 
 First, let's confirm that all of the traffic is now going to the new application
@@ -383,9 +409,3 @@ az group delete -g $resourceGroup --no-wait -y
 * Mahmoud El Zayet - mahmoud.elzayet@microsoft.com
 * Mark Whitby - mark.whitby@microsft.com
 * Anu Bhattacharya - anulekha.bhattacharya@microsoft.com
-
-* Jimmy Karlsson - jimmy.karlsson@microsoft.com
-* Jonas Norlund - jonas.norlund@microsoft.com
-* Peter Williams - pewill@microsoft.com
-* Arash Rassoulpour - arash.rassoulpour@microsoft.com
-* Anders Heden - anders.heden@microsoft.com

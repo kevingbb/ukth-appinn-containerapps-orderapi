@@ -227,7 +227,17 @@
                     "activeRevisionsMode": "multiple",
                     "ingress": {
                         "external": true,
-                        "targetPort": 80
+                        "targetPort": 80,
+                        "traffic":[
+                            {
+                                "revisionName": "[concat('httpapi--', parameters('ContainerApps.HttpApi.CurrentRevisionName'))]",
+                                "weight": 80
+                            },
+                            {
+                                "latestRevision": true,
+                                "weight": 20
+                            }
+                        ]
                     },
                     "secrets": [
                     {
@@ -242,7 +252,7 @@
                     "revisionSuffix": "[parameters('ContainerApps.HttpApi.NewRevisionName')]",
                     "containers": [
                         {
-                            "image": "kevingbb/httpapiapp:v1",
+                            "image": "kevingbb/httpapiapp:v2",
                             "name": "httpapi",
                             "env": [
                                 {
