@@ -1,0 +1,60 @@
+name: Trigger auto deployment for queuereader
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ jonorlu/queuereader ]
+    paths:
+    - 'queuereaderapp/**'
+    - '.github/workflows/queuereader-AutoDeployTrigger-b2b54f24-add1-4558-86dc-ecf8d720c329.yml'
+
+  # Allow mannually trigger 
+  workflow_dispatch:      
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Log in to container registry
+        uses: docker/login-action@v1
+        with:
+          registry: cajhyltacr.azurecr.io
+          username: ${{ secrets.QUEUEREADER_REGISTRY_USERNAME }}
+          password: ${{ secrets.QUEUEREADER_REGISTRY_PASSWORD }}
+
+      - name: Build and push container image to registry
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: cajhyltacr.azurecr.io/queuereader:${{ github.sha }}
+          file: ./queuereaderapp/Dockerfile
+          context: ./queuereaderapp/
+
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    
+    steps:
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.QUEUEREADER_AZURE_CREDENTIALS }}
+
+
+      - name: Deploy to containerapp
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az config set extension.use_dynamic_install=yes_without_prompt
+            az containerapp registry set -n queuereader -g ca-jhylt-rg --server cajhyltacr.azurecr.io --username  ${{ secrets.QUEUEREADER_REGISTRY_USERNAME }} --password ${{ secrets.QUEUEREADER_REGISTRY_PASSWORD }}
+            az containerapp update -n queuereader -g ca-jhylt-rg --image cajhyltacr.azurecr.io/queuereader:${{ github.sha }}
