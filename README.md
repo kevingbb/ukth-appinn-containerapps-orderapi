@@ -438,7 +438,7 @@ Give the PAT the following scopes:
 -	repo (Full control of private repositories) 
 -	workflows (Update GitHub Action workflows)
 
-![pat](pat.png)
+![pat](images/pat.png)
 
 
 Click “Generate token”, copy the generated token and assign the variable. 
@@ -467,11 +467,11 @@ The command will create a GitHub Action and run it, it takes a couple of minutes
 
 Dive into the logs and locate the “latestRevisionName”, then go to the Azure portal and verify that the revision name is the same for the “queuereader” Container App.
 
-![ghaction1](ghaction1.png)
+![ghaction1](images/ghaction1.png)
 
-![ghaction2](ghaction2.png)
+![ghaction2](images/ghaction2.png)
 
-![revision](revision.png)
+![revision](images/revision.png)
 
 
 Now it’s time to do a code change and validate that it has been deployed.
@@ -494,7 +494,7 @@ Make sure that the build was succeeded.
 
 Commit the changes in VS Code.
 
-![commit](commit.png)
+![commit](images/commit.png)
 
 After the commit, the previous created GitHub Action starts, follow the progress github.com  Actions 
 
