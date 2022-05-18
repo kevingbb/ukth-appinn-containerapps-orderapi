@@ -64,6 +64,17 @@ appInsights=${name}-ai
 storageAccount=$(echo $name | tr -d -)sa
 ```
 
+```powershell
+# Set variables for the rest of the demo
+
+resourceGroup=${name}-rg
+location=northeurope
+containerAppEnv=${name}-env
+logAnalytics=${name}-la
+appInsights=${name}-ai
+storageAccount=$(echo $name | tr -d -)sa
+```
+
 Optional -  if using Codespaces or not logged into Azure CLI
 
 ```bash
@@ -84,6 +95,12 @@ az account set -s <subscription-id>
 az group create --name $resourceGroup --location $location -o table
 ```
 
+```bash
+
+# Create Resource Group
+New-AzResourceGroup -Name cont -Location westeurope
+```
+
 ### Deploy version 1 of the application
 
 We'll deploy the first version of the application to Azure. This typically takes around 3 to 5 minutes to complete.
@@ -97,6 +114,10 @@ az deployment group create \
     LogAnalytics.Workspace.Name=$logAnalytics \
     AppInsights.Name=$appInsights \
     StorageAccount.Name=$storageAccount
+```
+
+```powershell
+New-AzResourceGroupDeployment -Name "carpediem" -ResourceGroupName "cont" -TemplateParameterFile .\v4_parametersbicep.json -TemplateFile .\v4_template.bicep -Verbose
 ```
 
 Now the application is deployed, let's determine the URL we'll need to use to access it and store that in a variable for convenience
