@@ -83,6 +83,16 @@ az account set -s <subscription-id>
 az group create --name $resourceGroup --location $location -o table
 ```
 
+### Deploy container registry
+
+We'll deploy the first version of the application to Azure. This typically takes around 3 to 5 minutes to complete.
+
+```bash
+az deployment group create \
+  -g $resourceGroup \
+  --template-file v0_template.bicep
+```
+
 ### Deploy version 1 of the application
 
 We'll deploy the first version of the application to Azure. This typically takes around 3 to 5 minutes to complete.
