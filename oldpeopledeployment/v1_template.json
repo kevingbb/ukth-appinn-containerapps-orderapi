@@ -1,5 +1,5 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-08-01/deploymentTemplate.json#",
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
     "parameters": {
         "Location": {
@@ -127,14 +127,13 @@
                         "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('StorageAccount.Name'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('StorageAccount.Name')), variables('StorageAccount.ApiVersion')).keys[0].value, ';EndpointSuffix=core.windows.net')]"
                     }],
                     "dapr": {
-                        "enabled": true,
-                        "appId": "queuereader"
+                        "enabled": false
                     }
                 },
                 "template": {
                     "containers": [
                         {
-                            "image": "kevingbb/queuereader:v2",
+                            "image": "kevingbb/queuereader:v1",
                             "name": "queuereader",
                             "env": [
                                 {
@@ -144,10 +143,6 @@
                                 {
                                     "name": "QueueConnectionString",
                                     "secretref": "queueconnection"
-                                },
-                                {
-                                    "name": "TargetApp",
-                                    "value": "storeapp"
                                 }
                             ]
                         }
@@ -192,8 +187,6 @@
                     },
                     "dapr": {
                         "enabled": true,
-                        "appId": "storeapp",
-                        "appProcotol": "http",
                         "appPort": 3000
                     }
                 },
@@ -239,7 +232,7 @@
                     }
                 },
                 "template": {
-                    "revisionSuffix": "[parameters('ContainerApps.HttpApi.NewRevisionName')]",
+                    "revisionSuffix": "[parameters('ContainerApps.HttpApi.CurrentRevisionName')]",
                     "containers": [
                         {
                             "image": "kevingbb/httpapiapp:v1",
