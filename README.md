@@ -518,7 +518,6 @@ ContainerAppConsoleLogs_CL
 
 Here you should see one row with the text "This is a new log message!".
 
-
 ### Cleanup
 
 Deleting the Azure resource group should remove everything associated with this demo.
