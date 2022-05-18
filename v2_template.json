@@ -134,7 +134,7 @@
                 "template": {
                     "containers": [
                         {
-                            "image": "kevingbb/queuereader:v2",
+                            "image": "kevingbb/queuereader:v1",
                             "name": "queuereader",
                             "env": [
                                 {
