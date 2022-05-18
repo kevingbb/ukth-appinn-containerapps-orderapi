@@ -15,7 +15,9 @@
 
 
 	// Add the IDs of extensions you want installed when the container is created.
-	"extensions": [],
+	"extensions": [
+		"ms-dotnettools.csharp"
+	],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
@@ -29,5 +31,7 @@
 		"github-cli": "latest",
 		"azure-cli": "latest",
 		"homebrew": "latest"
+
+		
 	}
 }
