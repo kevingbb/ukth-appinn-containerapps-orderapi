@@ -5,6 +5,7 @@ param AppInsights_Name string
 param ContainerApps_Environment_Name string
 param ContainerApps_HttpApi_CurrentRevisionName string
 param ContainerApps_HttpApi_NewRevisionName string
+param Container_Registry_Name string
 
 var StorageAccount_ApiVersion = '2018-07-01'
 var StorageAccount_Queue_Name = 'demoqueue'

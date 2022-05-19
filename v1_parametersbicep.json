@@ -22,6 +22,9 @@
         },
         "ContainerApps_HttpApi_NewRevisionName": {
             "value": "blue"
+        },
+        "Container_Registry_Name": {
+            "value": "acrName"
         }
     }
 }

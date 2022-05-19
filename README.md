@@ -52,7 +52,7 @@ Let's start by setting some variables that we will use for creating Azure resour
 ```bash
 # Generate a random name
 
-name=$(cat /dev/urandom | tr -dc '[:lower:]' | fold -w ${1:-5} | head -n 1)
+name=ca$(cat /dev/urandom | tr -dc '[:lower:]' | fold -w ${1:-5} | head -n 1)
 
 # Set variables for the rest of the demo
 
@@ -61,7 +61,7 @@ location=northeurope
 containerAppEnv=${name}-env
 logAnalytics=${name}-la
 appInsights=${name}-ai
-acr=acr${name}
+acr=${name}acr
 ```
 
 Optional -  if using Codespaces or not logged into Azure CLI
@@ -104,9 +104,11 @@ az deployment group create \
   -g $resourceGroup \
   --template-file v1_template.bicep \
   --parameters @v1_parametersbicep.json \
-  --parameters ContainerApps.Environment_Name=$containerAppEnv \
-    LogAnalytics_Workspace.Name=$logAnalytics \
-    AppInsights_Name=$appInsights 
+  --parameters \
+    ContainerApps_Environment_Name=$containerAppEnv \
+    LogAnalytics_Workspace_Name=$logAnalytics \
+    AppInsights_Name=$appInsights \
+    Container_Registry_Name=$acr 
 ```
 
 Now the application is deployed, let's determine the URL we'll need to use to access it and store that in a variable for convenience
