@@ -52,7 +52,7 @@ Let's start by setting some variables that we will use for creating Azure resour
 ```bash
 # Generate a random name
 
-name=ca-$(cat /dev/urandom | tr -dc '[:lower:]' | fold -w ${1:-5} | head -n 1)
+name=$(cat /dev/urandom | tr -dc '[:lower:]' | fold -w ${1:-5} | head -n 1)
 
 # Set variables for the rest of the demo
 
@@ -61,6 +61,7 @@ location=northeurope
 containerAppEnv=${name}-env
 logAnalytics=${name}-la
 appInsights=${name}-ai
+acr=acr${name}
 ```
 
 Optional -  if using Codespaces or not logged into Azure CLI
@@ -85,12 +86,13 @@ az group create --name $resourceGroup --location $location -o table
 
 ### Deploy container registry
 
-We'll deploy the first version of the application to Azure. This typically takes around 3 to 5 minutes to complete.
+We will start with deployment of a Azure Container Registry to save images. 
 
 ```bash
 az deployment group create \
   -g $resourceGroup \
-  --template-file v0_template.bicep
+  --template-file v0_template.bicep \
+  --parameters containerRegistryName=$acr
 ```
 
 ### Deploy version 1 of the application
@@ -407,9 +409,9 @@ Now we need to get information about the Azure Container Registry that we create
 
 Set the variables in bash.
 ```bash
-acrUrl=$(az acr show -n ca${name}acr -g $resourceGroup --query 'loginServer' -o tsv)
-acrUsername=$(az acr show -n ca${name}acr -g $resourceGroup --query 'name' -o tsv)
-acrSecret=$(az acr credential show -n ca${name}acr -g $resourceGroup --query passwords[0].value -o tsv)
+acrUrl=$(az acr show -n $acr -g $resourceGroup --query 'loginServer' -o tsv)
+acrUsername=$(az acr show -n $acr -g $resourceGroup --query 'name' -o tsv)
+acrSecret=$(az acr credential show -n $acr -g $resourceGroup --query passwords[0].value -o tsv)
 ```
 
 Now we need a GitHub Personal Access Token (PAT) so we can authenticate against GitHub from Azure CLI.
