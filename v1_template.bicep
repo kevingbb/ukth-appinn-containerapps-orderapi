@@ -68,7 +68,6 @@ resource ContainerApps_Environment_Name_resource 'Microsoft.App/managedEnvironme
   location: Location
   tags: {}
   properties: {
-    type: 'managed'
     appLogsConfiguration: {
       destination: 'log-analytics'
       logAnalyticsConfiguration: {
