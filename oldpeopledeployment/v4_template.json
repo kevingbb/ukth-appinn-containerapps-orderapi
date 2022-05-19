@@ -153,14 +153,17 @@
                         }
                     ],
                     "scale": {
-                        "minReplicas": 1,
-                        "maxReplicas": 2,
+                        "minReplicas": 0,
+                        "maxReplicas": 5,
                         "rules": [
                             {
                                 "name": "myqueuerule",
-                                "azureQueue": {
-                                    "queueName": "demoqueue",
-                                    "queueLength": 10,
+                                "custom": {
+                                    "type": "azure-queue",
+                                    "metadata": {
+                                        "queueName": "demoqueue",
+                                        "queueLength": "10"
+                                    },
                                     "auth": [
                                         {
                                             "secretRef": "queueconnection",
@@ -170,6 +173,94 @@
                                 }
                             }
                         ]
+                    }
+                }
+            },
+            "dependsOn": [
+                "[variables('ContainerApps.Environment.Id')]"
+            ]
+        },
+        {
+            "name": "dashboardapp",
+            "type": "Microsoft.App/containerApps",
+            "apiVersion": "2022-01-01-preview",
+            "kind": "containerapp",
+            "location": "[parameters('Location')]",
+            "properties": {
+                "managedEnvironmentId": "[variables('ContainerApps.Environment.Id')]",
+                "configuration": {
+                    "ingress": {
+                        "external": true,
+                        "targetPort": 80
+                    },
+                    "dapr": {
+                        "enabled": true,
+                        "appId": "dashboardapp",
+                        "appProcotol": "http",
+                        "appPort": 80
+                    }
+                },
+                "template": {
+                    "containers": [
+                        {
+                            "image": "melzayet/ca-operational-dashboard:v1.04",
+                            "name": "dashboardapp"
+                        }
+                    ],
+                    "scale": {
+                        "minReplicas": 1,
+                        "maxReplicas": 1,
+                        "rules": []
+                    }
+                }
+            },
+            "dependsOn": [
+                "[variables('ContainerApps.Environment.Id')]"
+            ]
+        },
+        {
+            "name": "dashboardapi",
+            "type": "Microsoft.App/containerApps",
+            "apiVersion": "2022-01-01-preview",
+            "kind": "containerapp",
+            "location": "[parameters('Location')]",
+            "properties": {
+                "managedEnvironmentId": "[variables('ContainerApps.Environment.Id')]",
+                "configuration": {
+                    "ingress": {
+                        "external": true,
+                        "targetPort": 5000
+                    },
+                    "dapr": {
+                        "enabled": true,
+                        "appId": "dashboardapi",
+                        "appProcotol": "http",
+                        "appPort": 5000
+                    }
+                },
+                "template": {
+                    "containers": [
+                        {
+                            "image": "melzayet/ca-operational-api:v0.3",
+                            "name": "dashboardapi",
+                            "env":[
+                                {
+                                "name": "DAPR_HTTP_PORT",
+                                "value": "3500"
+                                },
+                                {
+                                    "name": "TARGET_APP",
+                                    "value": "storeapp"
+                                }
+                            ]
+
+
+                        }
+                    ],
+                    "scale": {
+                        "minReplicas": 1,
+                        "maxReplicas": 1,
+                        "rules": []
                     }
                 }
             },
@@ -227,7 +318,21 @@
                     "activeRevisionsMode": "multiple",
                     "ingress": {
                         "external": true,
-                        "targetPort": 80
+                        "targetPort": 80,
+                        "traffic":[
+                            {
+                                "revisionName": "httpapi--blue",
+                                "weight": 0
+                            },
+                            {
+                                "revisionName": "httpapi--green",
+                                "weight": 0
+                            },
+                            {
+                                "latestRevision": true,
+                                "weight": 100
+                            }
+                        ]
                     },
                     "secrets": [
                     {
@@ -235,14 +340,17 @@
                         "value": "[concat('DefaultEndpointsProtocol=https;AccountName=', parameters('StorageAccount.Name'), ';AccountKey=', listKeys(resourceId('Microsoft.Storage/storageAccounts', parameters('StorageAccount.Name')), variables('StorageAccount.ApiVersion')).keys[0].value, ';EndpointSuffix=core.windows.net')]"
                     }],
                     "dapr": {
-                        "enabled": false
+                        "enabled": true,
+                        "appId": "httpapi",
+                        "appProcotol": "http",
+                        "appPort": 80
                     }
                 },
                 "template": {
                     "revisionSuffix": "[parameters('ContainerApps.HttpApi.NewRevisionName')]",
                     "containers": [
                         {
-                            "image": "kevingbb/httpapiapp:v1",
+                            "image": "kevingbb/httpapiapp:v2",
                             "name": "httpapi",
                             "env": [
                                 {
@@ -258,7 +366,7 @@
                     ],
                     "scale": {
                         "minReplicas": 1,
-                        "maxReplicas": 2,
+                        "maxReplicas": 10,
                         "rules": [
                             {
                                 "name": "httpscalingrule",
