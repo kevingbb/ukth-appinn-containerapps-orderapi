@@ -397,7 +397,7 @@ Once `hey` has finished generating messages, the number of instances of the HTTP
 
 ## Deploy version 5
 
-Until now we have worked with docker images that others have created, now we are going to do a code change on our own code base and push the changes to Container Apps using GitHub Actions. [Learn more]( Publish revisions with GitHub Actions in Azure Container Apps Preview | Microsoft Docs)
+Until now we have worked with docker images that others have created, now we are going to do a code change on our own code base and push the changes to Container Apps using GitHub Actions. [Learn more](https://docs.microsoft.com/en-us/azure/container-apps/github-actions-cli?tabs=bash)
 
 We are now going to use a Azure CLI command to create a GitHub Action that builds the queuereader C# project and pushes the image to Azure Container Registry and deploys it to our Container App.
 
@@ -410,7 +410,7 @@ az ad sp create-for-rbac \
   --scopes /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP_NAME> \
   --sdk-auth
 ```
-The return value from this command is a JSON payload, which includes the service principal's tenantId, clientId, and clientSecret.
+The return value from this command is a JSON payload, which includes the service principal's `tenantId`, `clientId`, and `clientSecret`.
 
 Set the variables in bash.
 
@@ -433,6 +433,7 @@ Now we need a GitHub Personal Access Token (PAT) so we can authenticate against 
 Go to github.com --> Settings --> Developer Settings --> Personal access tokens Click on ”Generate new token” button.
  
 Password prompt might appear. Enter password.
+
 In the “Note” textbox enter a name for the PAT, such as “ca-pat”.
 Give the PAT the following scopes: 
 -	repo (Full control of private repositories) 
@@ -463,7 +464,7 @@ az containerapp github-action add \
   --token $ghToken
 ```
 
-The command will create a GitHub Action and run it, it takes a couple of minutes, please check the status at github.com  Actions and see the progress of the GitHub Action after it has been created by the Azure CLI command.
+The command will create a GitHub Action and run it, it takes a couple of minutes, please check the status at github.com --> Actions and see the progress of the GitHub Action after it has been created by the Azure CLI command.
 
 Dive into the logs and locate the “latestRevisionName”, then go to the Azure portal and verify that the revision name is the same for the “queuereader” Container App.
 
@@ -492,11 +493,11 @@ dotnet build .
 ```
 Make sure that the build was succeeded.
 
-Commit the changes in VS Code.
+Commit the change in VS Code.
 
 ![commit](images/commit.png)
 
-After the commit, the previous created GitHub Action starts, follow the progress github.com  Actions 
+After the commit, the previous created GitHub Action starts, follow the progress at github.com --> Actions.
 
 After the deployment has succeeded, please verify that the revision number has changed using the Azure portal.
 
