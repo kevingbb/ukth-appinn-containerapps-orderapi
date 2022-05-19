@@ -141,7 +141,8 @@ Alternatively, if you prefer to stay in the CLI, you can run the Log Analytics q
 
 ```bash
 workspaceId=$(az monitor log-analytics workspace show -n $logAnalytics -g $resourceGroup --query "customerId" -o tsv)
-az monitor log-analytics query -w $workspaceId --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s has 'queuereader' and ContainerName_s has 'queuereader' | where Log_s has 'null' | project TimeGenerated, ContainerAppName_s, RevisionName_s, ContainerName_s, Log_s | order by TimeGenerated desc"
+
+az monitor log-analytics query -w $workspaceId --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s has 'queuereader' and ContainerName_s has 'queuereader' | where Log_s has 'null' | top 100 by TimeGenerated"
 ```
 
 You should see a number of log file entries which will likely all contain the same error. Drill down on one of them to reveal more. You should see something like the following:
