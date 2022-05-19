@@ -30,6 +30,7 @@ There are two options:
 ### Getting Started
 
 As this is currently a preview service, you will need to install an Azure CLI extension to work with Container Apps.
+More information about the azure container apps extension commandos: https://docs.microsoft.com/en-us/cli/azure/containerapp?view=azure-cli-latest
 
 Run the following command.
 
@@ -75,11 +76,6 @@ az account show
 
 # In case not the right subscription
 az account set -s <subscription-id>
-
-# in order to be able to use Azure CLI with container apps, we need to add the container apps cli extension
-# more information about the azure container apps extension commandos: https://docs.microsoft.com/en-us/cli/azure/containerapp?view=azure-cli-latest
-
-az extension add --name containerapp --upgrade
 
 ```
 
