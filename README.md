@@ -379,6 +379,129 @@ Once `hey` has finished generating messages, the number of instances of the HTTP
 
 > Tip! To exit from tmux when you're finished, type `CTRL-b`, then `:` and then the command `kill-session`
 
+## Deploy version 5
+
+Until now we have worked with docker images that others have created, now we are going to do a code change on our own code base and push the changes to Container Apps using GitHub Actions. [Learn more]( Publish revisions with GitHub Actions in Azure Container Apps Preview | Microsoft Docs)
+
+We are now going to use a Azure CLI command to create a GitHub Action that builds the queuereader C# project and pushes the image to Azure Container Registry and deploys it to our Container App.
+
+First, we need to create a service principal that can be used from the GitHub action to deploy the changes we are introducing.
+
+```bash
+az ad sp create-for-rbac \
+  --name <SERVICE_PRINCIPAL_NAME> \
+  --role "contributor" \
+  --scopes /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/<RESOURCE_GROUP_NAME> \
+  --sdk-auth
+```
+The return value from this command is a JSON payload, which includes the service principal's tenantId, clientId, and clientSecret.
+
+Set the variables in bash.
+
+```bash
+spClientid=[Replace with the clientId of the service principal]
+spClientSecret=[Replace with the clientSecret of the service principal]
+tenantid=[Replace with the tenantId of the service principal]
+```
+Now we need to get information about the Azure Container Registry that we created in the beginning.
+
+Set the variables in bash.
+```bash
+acrUrl=$(az acr show -n ca${name}acr -g $resourceGroup --query 'loginServer' -o tsv)
+acrUsername=$(az acr show -n ca${name}acr -g $resourceGroup --query 'name' -o tsv)
+acrSecret=$(az acr credential show -n ca${name}acr -g $resourceGroup --query passwords[0].value -o tsv)
+```
+
+Now we need a GitHub Personal Access Token (PAT) so we can authenticate against GitHub from Azure CLI.
+
+Go to github.com --> Settings --> Developer Settings --> Personal access tokens Click on ”Generate new token” button.
+ 
+Password prompt might appear. Enter password.
+In the “Note” textbox enter a name for the PAT, such as “ca-pat”.
+Give the PAT the following scopes: 
+-	repo (Full control of private repositories) 
+-	workflows (Update GitHub Action workflows)
+
+![pat](images/pat.png)
+
+
+Click “Generate token”, copy the generated token and assign the variable. 
+```bash
+ghToken=[Replace with the PAT]
+```
+Now all the variables are set so we can run the Azure CLI command, make sure you are located at the root of the repo and run the following command.
+
+```bash
+az containerapp github-action add \
+  --repo-url $repoUrl \
+  --docker-file-path "./queuereaderapp/Dockerfile" \
+  --branch main \
+  --name queuereader \
+  --resource-group $resourceGroup \
+  --registry-url $acrUrl \
+  --registry-username $acrUsername \
+  --registry-password $acrSecret \
+  --service-principal-client-id $spClientid \
+  --service-principal-client-secret $spClientSecret \
+  --service-principal-tenant-id $tenantid \
+  --token $ghToken
+```
+
+The command will create a GitHub Action and run it, it takes a couple of minutes, please check the status at github.com  Actions and see the progress of the GitHub Action after it has been created by the Azure CLI command.
+
+Dive into the logs and locate the “latestRevisionName”, then go to the Azure portal and verify that the revision name is the same for the “queuereader” Container App.
+
+![ghaction1](images/ghaction1.png)
+
+![ghaction2](images/ghaction2.png)
+
+![revision](images/revision.png)
+
+
+Now it’s time to do a code change and validate that it has been deployed.
+
+Open VS Code --> queuereaderapp folder --> Open Worker.cs and scroll down to line number 51, where we are writing to the log.  
+
+```c#
+logger.LogInformation($"Message ID: '{message.MessageId}', contents: '{message.Body?.ToString()}'");
+```
+Below this line insert the following code.
+
+```c#
+logger.LogInformation("This is a new log message!");
+```
+Then open the Terminal in VS Code and make sure you are in the “queuereaderapp” folder. Run this command.
+```bash
+dotnet build . 
+```
+Make sure that the build was succeeded.
+
+Commit the changes in VS Code.
+
+![commit](images/commit.png)
+
+After the commit, the previous created GitHub Action starts, follow the progress github.com  Actions 
+
+After the deployment has succeeded, please verify that the revision number has changed using the Azure portal.
+
+Now it’s time to validate that the changes we made has taken affect. Send a message to the API.
+
+```bash
+curl -X POST $dataURL?message=mynewlogmessage
+```
+Validate the change by looking in Log Analytics.
+
+```text
+ContainerAppConsoleLogs_CL
+| where ContainerAppName_s has "queuereader" and ContainerName_s has "queuereader"
+| where Log_s has "Message"
+| project TimeGenerated, Log_s
+| order by TimeGenerated desc
+| limit 50
+```
+
+Here you should see one row with the text "This is a new log message!".
+
 ### Cleanup
 
 Deleting the Azure resource group should remove everything associated with this demo.
