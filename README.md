@@ -499,7 +499,7 @@ ContainerAppConsoleLogs_CL
 | project TimeGenerated, Log_s
 | order by TimeGenerated desc
 | limit 50
-```
+``` 
 
 Here you should see one row with the text "This is a new log message!".
 
