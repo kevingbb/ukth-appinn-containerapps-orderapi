@@ -134,7 +134,7 @@ ContainerApps integrates with Application Insights and Log Analytics. In the Azu
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s has "queuereader" and ContainerName_s has "queuereader"
 | where Log_s has "null"
-| project TimeGenerated, ContainerAppName_s, RevisionName_s, ContainerName_s, Log_s
+| project TimeGenerated, ContainerAppName_s, ContainerName_s, Log_s
 | order by TimeGenerated desc
 ```
 
