@@ -67,7 +67,6 @@ resource ContainerApps_Environment_Name_resource 'Microsoft.App/managedEnvironme
   location: Location
   tags: {}
   properties: {
-    type: 'managed'
     appLogsConfiguration: {
       destination: 'log-analytics'
       logAnalyticsConfiguration: {
@@ -75,18 +74,18 @@ resource ContainerApps_Environment_Name_resource 'Microsoft.App/managedEnvironme
         sharedKey: listKeys(Workspace_Resource_Id, '2015-03-20').primarySharedKey
       }
     }
-    containerAppsConfiguration: {
-      daprAIInstrumentationKey: reference(AppInsights_Name_resource.id, '2020-02-02', 'Full').properties.InstrumentationKey
-    }
+   
+    daprAIInstrumentationKey: AppInsights_Name_resource.properties.InstrumentationKey
+    daprAIConnectionString: AppInsights_Name_resource.properties.ConnectionString
+    
   }
   dependsOn: [
     StorageAccount_Name_resource
   ]
 }
 
-resource queuereader 'Microsoft.Insights/components@2020-02-02-preview' = {
+resource queuereader 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'queuereader'
-  kind: 'containerapp'
   location: Location
   properties: {
     managedEnvironmentId: ContainerApps_Environment_Name_resource.id
@@ -145,11 +144,9 @@ resource queuereader 'Microsoft.Insights/components@2020-02-02-preview' = {
       }
     }
   }
-  dependsOn: [
-  ]
 }
 
-resource storeapp 'Microsoft.Insights/components@2020-02-02-preview' = {
+resource storeapp 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'storeapp'
   kind: 'containerapp'
   location: Location
@@ -185,9 +182,8 @@ resource storeapp 'Microsoft.Insights/components@2020-02-02-preview' = {
   ]
 }
 
-resource httpapi 'Microsoft.Insights/components@2020-02-02-preview' = {
+resource httpapi 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'httpapi'
-  kind: 'containerapp'
   location: Location
   properties: {
     managedEnvironmentId: ContainerApps_Environment_Name_resource.id
@@ -251,6 +247,4 @@ resource httpapi 'Microsoft.Insights/components@2020-02-02-preview' = {
       }
     }
   }
-  dependsOn: [
-  ]
 }

@@ -75,9 +75,10 @@ resource ContainerApps_Environment_Name_resource 'Microsoft.App/managedEnvironme
         sharedKey: listKeys(Workspace_Resource_Id, '2015-03-20').primarySharedKey
       }
     }
-    containerAppsConfiguration: {
-      daprAIInstrumentationKey: reference(AppInsights_Name_resource.id, '2020-02-02', 'Full').properties.InstrumentationKey
-    }
+    
+    daprAIInstrumentationKey: AppInsights_Name_resource.properties.InstrumentationKey
+    daprAIConnectionString: AppInsights_Name_resource.properties.ConnectionString
+
   }
   dependsOn: [
     StorageAccount_Name_resource
