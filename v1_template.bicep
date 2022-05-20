@@ -99,7 +99,7 @@ resource queuereader 'Microsoft.App/containerApps@2022-03-01' = {
         }
       ]
       dapr: {
-        enabled: false
+        enabled: true
       }
     }
     template: {
@@ -140,6 +140,9 @@ resource queuereader 'Microsoft.App/containerApps@2022-03-01' = {
       }
     }
   }
+  dependsOn: [
+    StorageAccount_Name_resource
+  ]
 }
 
 resource storeapp 'Microsoft.App/containerApps@2022-03-01' = {
