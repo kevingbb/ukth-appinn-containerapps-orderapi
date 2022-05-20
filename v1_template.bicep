@@ -13,20 +13,20 @@ var Workspace_Resource_Id = LogAnalytics_Workspace_Name_resource.id
 
 resource acr 'Microsoft.ContainerRegistry/registries@2021-12-01-preview' = {
   name: Container_Registry_Name
-  location:Location 
+  location: Location
   sku: {
-    name:  'Standard'
+    name: 'Standard'
   }
-   properties: {
-      adminUserEnabled: true
-   }
+  properties: {
+    adminUserEnabled: true
+  }
 }
 
 resource StorageAccount_Name_resource 'Microsoft.Storage/storageAccounts@2021-01-01' = {
   name: '${StorageAccount_prefix}${uniqueString(resourceGroup().id)}'
   location: Location
   sku: {
-    name: 'Standard_LRS'    
+    name: 'Standard_LRS'
   }
   kind: 'StorageV2'
   properties: {
@@ -56,8 +56,6 @@ resource LogAnalytics_Workspace_Name_resource 'Microsoft.OperationalInsights/wor
   }
 }
 
-
-
 resource AppInsights_Name_resource 'Microsoft.Insights/components@2020-02-02' = {
   name: AppInsights_Name
   kind: 'web'
@@ -80,8 +78,9 @@ resource ContainerApps_Environment_Name_resource 'Microsoft.App/managedEnvironme
         customerId: LogAnalytics_Workspace_Name_resource.properties.customerId
         sharedKey: listKeys(Workspace_Resource_Id, '2015-03-20').primarySharedKey
       }
-    }
-    daprAIInstrumentationKey: reference(AppInsights_Name_resource.id, '2020-02-02', 'Full').properties.InstrumentationKey    
+    }    
+    daprAIInstrumentationKey: AppInsights_Name_resource.properties.InstrumentationKey
+    daprAIConnectionString: AppInsights_Name_resource.properties.ConnectionString
   }
 }
 
@@ -91,7 +90,7 @@ resource queuereader 'Microsoft.App/containerApps@2022-03-01' = {
   properties: {
     managedEnvironmentId: ContainerApps_Environment_Name_resource.id
     configuration: {
-      activeRevisionsMode: 'multiple'
+      activeRevisionsMode: 'single'
       secrets: [
         {
           name: 'queueconnection'
@@ -100,22 +99,28 @@ resource queuereader 'Microsoft.App/containerApps@2022-03-01' = {
       ]
       dapr: {
         enabled: true
+        appId: 'queuereader'
       }
     }
     template: {
       containers: [
         {
-          image: 'kevingbb/queuereader:v1'
+          image: 'kevingbb/queuereader:v2'
           name: 'queuereader'
           env: [
             {
               name: 'QueueName'
-              value: 'demoqueue'
+              value: 'foo'
             }
             {
               name: 'QueueConnectionString'
               secretRef: 'queueconnection'
             }
+            {
+              name: 'TargetApp'
+              value: 'storeapp'
+            }
+           
           ]
         }
       ]

@@ -83,7 +83,7 @@ resource queuereader 'Microsoft.App/containerApps@2022-03-01' = {
   properties: {
     managedEnvironmentId: ContainerApps_Environment_Name_resource.id
     configuration: {
-      activeRevisionsMode: 'multiple'
+      activeRevisionsMode: 'single'
       secrets: [
         {
           name: 'queueconnection'
