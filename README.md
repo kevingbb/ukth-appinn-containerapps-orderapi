@@ -29,6 +29,18 @@ There are two options:
 
 ### Getting Started
 
+You will work in a separate fork of this repository in GitHub.
+
+1. Log in to [GitHub](https://github.com) with your GitHub account
+2. Fork this repo by selecting the *Fork* menu in the GitHub top right corner
+![](images/fork.png)
+3. After completing the fork, open your repository in GitHub Codespaces by selecting menu `Code/Create codespace on main`
+![](images/codespaces.png)
+
+This command takes several minutes to set up the development container and clone the source code.
+
+Once the Codespaces finished deployment you will have a browser based VSCode instance available with a cloned repository. Take a few minutes to familarize yourself with the source code and starter files. 
+
 As this is currently a preview service, you will need to install an Azure CLI extension to work with Container Apps.
 More information about the azure container apps extension commandos: https://docs.microsoft.com/en-us/cli/azure/containerapp?view=azure-cli-latest
 
@@ -98,7 +110,10 @@ az deployment group create \
 
 ### Deploy version 1 of the application
 
-We'll deploy the first version of the application to Azure. This typically takes around 3 to 5 minutes to complete.
+We'll deploy the first version of the application to Azure. 
+
+Review the [V1 Bicep template](v1_template.bicep) that contains IaC definitions for Azure Container Apps Environment and other related services such as Log Analytics and a Storage account for the queue. Notice the individual container app resources 
+
 
 ```bash
 az deployment group create \
@@ -111,6 +126,13 @@ az deployment group create \
     AppInsights_Name=$appInsights \
     Container_Registry_Name=$acr 
 ```
+This typically takes around 3 to 5 minutes to complete.
+
+Once deployment has completed, verify the resources created by navigating to [Azure Portal](https://portal.azure.com). The following resources should be created. Note that the resource name prefix will differ in your environment.
+![](images/resources.png)
+
+Select the Container Apps Environment and review the apps listed in the Apps blade
+![](images/containerapps.png)
 
 Now the application is deployed, let's determine the URL we'll need to use to access it and store that in a variable for convenience
 
