@@ -35,7 +35,7 @@ You will work in a separate fork of this repository in GitHub.
 1. Log in to [GitHub](https://github.com) with your GitHub account
 2. Fork this repo by selecting the *Fork* menu in the GitHub top right corner
 ![](images/fork.png)
-3. After completing the fork, open your repository in GitHub Codespaces by selecting menu `Code/Create codespace on main`
+3. After completing the fork, open your repository in GitHub Codespaces by selecting menu Code-->Create codespace on main
 ![](images/codespaces.png)
 
 This command will take 5-10 minutes to set up the development container and clone the source code.
@@ -148,6 +148,7 @@ ContainerAppConsoleLogs_CL
 | where Log_s has "null"
 | top 100 by TimeGenerated
 ```
+> If you don't see any results from the query you need to wait a couple of minutes for logs to be populated.
 
 Alternatively, if you prefer to stay in the CLI, you can run the Log Analytics query from there.
 
@@ -308,6 +309,8 @@ curl $storeURL | jq
   }
 ]
 ```
+
+> Note that the traffic split is 80/20 (80% old api, 20 % new api), so you might need to send a few messages before it hits our new revision of httpapi and appends the provided string to the message.
 
 That's looking better. We can still see the original message, but we can also now see our "test" message with the date and time appended to it.
 
