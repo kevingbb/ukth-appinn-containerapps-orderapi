@@ -148,7 +148,6 @@ resource queuereader 'Microsoft.App/containerApps@2022-03-01' = {
 
 resource storeapp 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'storeapp'
-  kind: 'containerapp'
   location: Location
   properties: {
     managedEnvironmentId: ContainerApps_Environment_Name_resource.id
@@ -160,7 +159,7 @@ resource storeapp 'Microsoft.App/containerApps@2022-03-01' = {
       dapr: {
         enabled: true
         appId: 'storeapp'
-        appProcotol: 'http'
+        appProtocol: 'http'
         appPort: 3000
       }
     }
@@ -210,7 +209,8 @@ resource httpapi 'Microsoft.App/containerApps@2022-03-01' = {
         }
       ]
       dapr: {
-        enabled: false
+        enabled: true        
+        appProtocol: 'http' 
       }
     }
     template: {

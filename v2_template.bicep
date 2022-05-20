@@ -191,6 +191,7 @@ resource httpapi 'Microsoft.App/containerApps@2022-03-01' = {
       ]
       dapr: {
         enabled: true
+        appProtocol: 'http' 
       }
     }
     template: {

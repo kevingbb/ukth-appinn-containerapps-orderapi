@@ -16,7 +16,6 @@ resource StorageAccount_Name_resource 'Microsoft.Storage/storageAccounts@2021-01
   location: Location
   sku: {
     name: 'Standard_LRS'
-    tier: 'Standard'
   }
   kind: 'StorageV2'
   properties: {
@@ -27,12 +26,7 @@ resource StorageAccount_Name_resource 'Microsoft.Storage/storageAccounts@2021-01
 }
 
 resource StorageAccount_Name_default_StorageAccount_Queue_Name 'Microsoft.Storage/storageAccounts/queueServices/queues@2021-01-01' = {
-  name: '${StorageAccount_Name_resource.name}/default/${StorageAccount_Queue_Name}'
-  properties: {
-    metadata: {}
-  }
-  dependsOn: [
-  ]
+  name: '${StorageAccount_Name_resource.name}/default/${StorageAccount_Queue_Name}'  
 }
 
 resource LogAnalytics_Workspace_Name_resource 'Microsoft.OperationalInsights/workspaces@2020-08-01' = {
@@ -66,8 +60,7 @@ resource ContainerApps_Environment_Name_resource 'Microsoft.App/managedEnvironme
   name: ContainerApps_Environment_Name
   location: Location
   tags: {}
-  properties: {
-    type: 'managed'
+  properties: {   
     appLogsConfiguration: {
       destination: 'log-analytics'
       logAnalyticsConfiguration: {
@@ -75,7 +68,7 @@ resource ContainerApps_Environment_Name_resource 'Microsoft.App/managedEnvironme
         sharedKey: listKeys(Workspace_Resource_Id, '2015-03-20').primarySharedKey
       }
     }
-    
+
     daprAIInstrumentationKey: AppInsights_Name_resource.properties.InstrumentationKey
     daprAIConnectionString: AppInsights_Name_resource.properties.ConnectionString
 
@@ -85,9 +78,8 @@ resource ContainerApps_Environment_Name_resource 'Microsoft.App/managedEnvironme
   ]
 }
 
-resource queuereader 'Microsoft.Insights/components@2020-02-02-preview' = {
+resource queuereader 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'queuereader'
-  kind: 'containerapp'
   location: Location
   properties: {
     managedEnvironmentId: ContainerApps_Environment_Name_resource.id
@@ -153,9 +145,8 @@ resource queuereader 'Microsoft.Insights/components@2020-02-02-preview' = {
   ]
 }
 
-resource storeapp 'Microsoft.Insights/components@2020-02-02-preview' = {
+resource storeapp 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'storeapp'
-  kind: 'containerapp'
   location: Location
   properties: {
     managedEnvironmentId: ContainerApps_Environment_Name_resource.id
@@ -167,7 +158,7 @@ resource storeapp 'Microsoft.Insights/components@2020-02-02-preview' = {
       dapr: {
         enabled: true
         appId: 'storeapp'
-        appProcotol: 'http'
+        appProtocol: 'http'
         appPort: 3000
       }
     }
@@ -189,9 +180,8 @@ resource storeapp 'Microsoft.Insights/components@2020-02-02-preview' = {
   ]
 }
 
-resource dashboardapi 'Microsoft.Insights/components@2020-02-02-preview' = {
+resource dashboardapi 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'dashboardapi'
-  kind: 'containerapp'
   location: Location
   properties: {
     managedEnvironmentId: ContainerApps_Environment_Name_resource.id
@@ -203,7 +193,7 @@ resource dashboardapi 'Microsoft.Insights/components@2020-02-02-preview' = {
       dapr: {
         enabled: true
         appId: 'dashboardapi'
-        appProcotol: 'http'
+       appProtocol: 'http'
         appPort: 5000
       }
     }
@@ -235,9 +225,8 @@ resource dashboardapi 'Microsoft.Insights/components@2020-02-02-preview' = {
   ]
 }
 
-resource httpapi 'Microsoft.Insights/components@2020-02-02-preview' = {
+resource httpapi 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'httpapi'
-  kind: 'containerapp'
   location: Location
   properties: {
     managedEnvironmentId: ContainerApps_Environment_Name_resource.id
@@ -270,7 +259,7 @@ resource httpapi 'Microsoft.Insights/components@2020-02-02-preview' = {
       dapr: {
         enabled: true
         appId: 'httpapi'
-        appProcotol: 'http'
+        appProtocol: 'http'
         appPort: 80
       }
     }
@@ -308,6 +297,4 @@ resource httpapi 'Microsoft.Insights/components@2020-02-02-preview' = {
       }
     }
   }
-  dependsOn: [
-  ]
 }
