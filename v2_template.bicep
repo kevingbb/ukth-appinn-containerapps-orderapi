@@ -10,13 +10,15 @@ var StorageAccount_ApiVersion = '2018-07-01'
 var StorageAccount_Queue_Name = 'demoqueue'
 var Workspace_Resource_Id = LogAnalytics_Workspace_Name_resource.id
 
+
+
+
 resource StorageAccount_Name_resource 'Microsoft.Storage/storageAccounts@2021-01-01' = {
   //name: StorageAccount_Name
   name: '${StorageAccount_prefix}${uniqueString(resourceGroup().id)}'
   location: Location
   sku: {
     name: 'Standard_LRS'
-    tier: 'Standard'
   }
   kind: 'StorageV2'
   properties: {
@@ -28,11 +30,6 @@ resource StorageAccount_Name_resource 'Microsoft.Storage/storageAccounts@2021-01
 
 resource StorageAccount_Name_default_StorageAccount_Queue_Name 'Microsoft.Storage/storageAccounts/queueServices/queues@2021-01-01' = {
   name: '${StorageAccount_Name_resource.name}/default/${StorageAccount_Queue_Name}'
-  properties: {
-    metadata: {}
-  }
-  dependsOn: [
-  ]
 }
 
 resource LogAnalytics_Workspace_Name_resource 'Microsoft.OperationalInsights/workspaces@2020-08-01' = {
@@ -50,24 +47,22 @@ resource LogAnalytics_Workspace_Name_resource 'Microsoft.OperationalInsights/wor
     }
   }
 }
-
-resource AppInsights_Name_resource 'Microsoft.Insights/Components@2020-02-02-preview' = {
+resource AppInsights_Name_resource 'Microsoft.Insights/components@2020-02-02' = {
   name: AppInsights_Name
+  kind: 'web'
   location: Location
   properties: {
-    ApplicationId: AppInsights_Name
     Application_Type: 'web'
     Flow_Type: 'Redfield'
     Request_Source: 'CustomDeployment'
   }
 }
 
-resource ContainerApps_Environment_Name_resource 'Microsoft.App/managedEnvironments@2022-01-01-preview' = {
+resource ContainerApps_Environment_Name_resource 'Microsoft.App/managedEnvironments@2022-03-01' = {
   name: ContainerApps_Environment_Name
   location: Location
   tags: {}
   properties: {
-    type: 'managed'
     appLogsConfiguration: {
       destination: 'log-analytics'
       logAnalyticsConfiguration: {
@@ -75,18 +70,14 @@ resource ContainerApps_Environment_Name_resource 'Microsoft.App/managedEnvironme
         sharedKey: listKeys(Workspace_Resource_Id, '2015-03-20').primarySharedKey
       }
     }
-    containerAppsConfiguration: {
-      daprAIInstrumentationKey: reference(AppInsights_Name_resource.id, '2020-02-02', 'Full').properties.InstrumentationKey
-    }
+    
+    daprAIInstrumentationKey: reference(AppInsights_Name_resource.id, '2020-02-02', 'Full').properties.InstrumentationKey
+    
   }
-  dependsOn: [
-    StorageAccount_Name_resource
-  ]
 }
 
-resource queuereader 'Microsoft.App/containerApps@2022-01-01-preview' = {
+resource queuereader 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'queuereader'
-  kind: 'containerapp'
   location: Location
   properties: {
     managedEnvironmentId: ContainerApps_Environment_Name_resource.id
@@ -96,7 +87,12 @@ resource queuereader 'Microsoft.App/containerApps@2022-01-01-preview' = {
         {
           name: 'queueconnection'
           value: 'DefaultEndpointsProtocol=https;AccountName=${StorageAccount_Name_resource.name};AccountKey=${listKeys(StorageAccount_Name_resource.id, StorageAccount_ApiVersion).keys[0].value};EndpointSuffix=core.windows.net'
+        
         }
+        // {
+        //   name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
+        //   value: ContainerApps_Environment_Name_resource.properties.daprAIInstrumentationKey
+        // }
       ]
       dapr: {
         enabled: true
@@ -145,13 +141,10 @@ resource queuereader 'Microsoft.App/containerApps@2022-01-01-preview' = {
       }
     }
   }
-  dependsOn: [
-  ]
 }
 
-resource storeapp 'Microsoft.App/containerApps@2022-01-01-preview' = {
+resource storeapp 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'storeapp'
-  kind: 'containerapp'
   location: Location
   properties: {
     managedEnvironmentId: ContainerApps_Environment_Name_resource.id
@@ -163,7 +156,7 @@ resource storeapp 'Microsoft.App/containerApps@2022-01-01-preview' = {
       dapr: {
         enabled: true
         appId: 'storeapp'
-        appProcotol: 'http'
+        appProtocol: 'http'        
         appPort: 3000
       }
     }
@@ -185,9 +178,8 @@ resource storeapp 'Microsoft.App/containerApps@2022-01-01-preview' = {
   ]
 }
 
-resource httpapi 'Microsoft.App/containerApps@2022-01-01-preview' = {
+resource httpapi 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'httpapi'
-  kind: 'containerapp'
   location: Location
   properties: {
     managedEnvironmentId: ContainerApps_Environment_Name_resource.id
@@ -241,6 +233,4 @@ resource httpapi 'Microsoft.App/containerApps@2022-01-01-preview' = {
       }
     }
   }
-  dependsOn: [
-  ]
 }

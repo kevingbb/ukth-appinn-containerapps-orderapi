@@ -85,15 +85,6 @@ az account set -s <subscription-id>
 az group create --name $resourceGroup --location $location -o table
 ```
 
-### Deploy container registry
-
-We will start with deployment of a Azure Container Registry to save images. 
-
-```bash
-az deployment group create \
-  -g $resourceGroup \
-  --template-file v0_template.bicep \
-  --parameters containerRegistryName=$acr
 ```
 
 ### Deploy version 1 of the application
@@ -162,9 +153,10 @@ az deployment group create \
   -g $resourceGroup \
   --template-file v2_template.bicep \
   --parameters @v2_parametersbicep.json \
-  --parameters ContainerApps_Environment.Name=$containerAppEnv \
-    LogAnalytics_Workspace.Name=$logAnalytics \
+  --parameters ContainerApps_Environment_Name=$containerAppEnv \
+    LogAnalytics_Workspace_Name=$logAnalytics \
     AppInsights_Name=$appInsights 
+
 ```
 
 This time, we'll store the URL for the HTTP API application in a variable

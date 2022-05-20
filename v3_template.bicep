@@ -51,7 +51,7 @@ resource LogAnalytics_Workspace_Name_resource 'Microsoft.OperationalInsights/wor
   }
 }
 
-resource AppInsights_Name_resource 'Microsoft.Insights/Components@2020-02-02-preview' = {
+resource AppInsights_Name_resource 'Microsoft.Insights/components@2020-02-02' = {
   name: AppInsights_Name
   location: Location
   properties: {
@@ -62,7 +62,7 @@ resource AppInsights_Name_resource 'Microsoft.Insights/Components@2020-02-02-pre
   }
 }
 
-resource ContainerApps_Environment_Name_resource 'Microsoft.App/managedEnvironments@2022-01-01-preview' = {
+resource ContainerApps_Environment_Name_resource 'Microsoft.App/managedEnvironments@2022-03-01' = {
   name: ContainerApps_Environment_Name
   location: Location
   tags: {}
@@ -84,7 +84,7 @@ resource ContainerApps_Environment_Name_resource 'Microsoft.App/managedEnvironme
   ]
 }
 
-resource queuereader 'Microsoft.App/containerApps@2022-01-01-preview' = {
+resource queuereader 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'queuereader'
   kind: 'containerapp'
   location: Location
@@ -149,7 +149,7 @@ resource queuereader 'Microsoft.App/containerApps@2022-01-01-preview' = {
   ]
 }
 
-resource storeapp 'Microsoft.App/containerApps@2022-01-01-preview' = {
+resource storeapp 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'storeapp'
   kind: 'containerapp'
   location: Location
@@ -185,7 +185,7 @@ resource storeapp 'Microsoft.App/containerApps@2022-01-01-preview' = {
   ]
 }
 
-resource httpapi 'Microsoft.App/containerApps@2022-01-01-preview' = {
+resource httpapi 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'httpapi'
   kind: 'containerapp'
   location: Location
