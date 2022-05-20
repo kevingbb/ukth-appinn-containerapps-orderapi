@@ -20,10 +20,9 @@ In this sample you will see how to:
 
 ## Pre-requisites
 
-There are two options:
-
-1. [Access to GitHub Codespaces](#getting-started-via-codespaces)
-1. [VS Code + Docker Desktop on Local Machine](#getting-started-via-vs-code-and-local-dev-container)
+- A GitHub account
+- An Azure Subscription
+- License for using GitHub Codespaces
 
 
 ## Getting Started
@@ -64,11 +63,9 @@ Let's start by setting some variables that we will use for creating Azure resour
 
 ```bash
 # Generate a random name
-
 name=ca$(cat /dev/urandom | tr -dc '[:lower:]' | fold -w ${1:-5} | head -n 1)
 
 # Set variables for the rest of the demo
-
 resourceGroup=${name}-rg
 location=northeurope
 containerAppEnv=${name}-env
@@ -92,7 +89,6 @@ az account set -s <subscription-id>
 ```
 
 ```bash
-
 # Create Resource Group
 az group create --name $resourceGroup --location $location -o table
 ```
@@ -199,11 +195,6 @@ az deployment group create \
 
 ```
 ## Verify Version 2 
-This time, we'll store the URL for the HTTP API application in a variable
-
-```bash
-dataURL=https://httpapi.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'properties.defaultDomain' -o tsv)/Data
-```
 
 Let's see what happens when we access the queue application using the data URL
 
@@ -217,10 +208,10 @@ The result tells us that `demoqueue` has no messages:
 
 > `Queue 'demoqueue' has 0 messages`
 
-Now add a test message.
+This indicates that the messages are now processed. Now add another test message.
 
 ```bash
-curl -X POST $dataURL?message=test
+curl -X POST $dataURL?message=item2
 ```
 
 Ok, let's check our Store URL and see what happens this time
@@ -229,9 +220,9 @@ Ok, let's check our Store URL and see what happens this time
 curl $storeURL
 ```
 
-> `[{"id":"f30e1eb6-d9d1-458b-b8d3-327e5597ffc7","message":"57e88c1e-f4a4-4c66-8eb5-128bb235b08d"}]`
+> `[{"id":"a85b038a-a01f-4f25-b468-238d0c8a3676","message":"24a1f5ed-2407-4f9d-a6f9-5664436f1c28"},{"id":"f2b4c93a-63e5-4a4d-8a66-1fa4d4b958fe","message":"5940cf24-8c55-4b38-938a-10d9351d5d2b"}]`
 
-Ok, that's something but that's not the message we sent. 
+Ok, that's some progress but not the messages we sent in the query string. 
 ## Troubleshoot Version 2 
 Let's take a look at the application code
 
@@ -309,7 +300,7 @@ az deployment group create \
 With the third iteration of our applications deployed, let's try and send another order.
 
 ```bash
-curl -X POST $dataURL?message=secondtest
+curl -X POST $dataURL?message=item3
 ```
 
 And let's check the Store application again to see if the messages have been received
@@ -320,14 +311,14 @@ curl $storeURL | jq
 
 ```json
 [
-  {
-    "id": "b205d410-5150-4ac6-9e26-7079ebcae67b",
-    "message": "a39ecc22-cece-4442-851e-25d7329a1f55"
+   {
+    "id": "b222d3fd-9776-4631-9f1d-5038055e1541",
+    "message": "fa7c4a50-a711-48d5-8d7c-b9a9e9b9056e"
   },
   {
-    "id": "318e72bb-8c55-486c-99ec-18a5bd76bc1d",
-    "message": "01/03/2022 13:28:33 +00:00 -- secondtest"
-  }
+    "id": "807fd951-7213-4fd7-8a6f-df3a8e064ed9",
+    "message": "05/20/2022 22:31:26 +00:00 -- item3"
+  },
 ]
 ```
 
