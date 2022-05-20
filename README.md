@@ -99,8 +99,6 @@ az account set -s <subscription-id>
 az group create --name $resourceGroup --location $location -o table
 ```
 
-```
-
 ### Deploy version 1 of the application
 
 We'll deploy the first version of the application to Azure. 
