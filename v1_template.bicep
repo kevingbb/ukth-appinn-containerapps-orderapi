@@ -56,14 +56,17 @@ resource LogAnalytics_Workspace_Name_resource 'Microsoft.OperationalInsights/wor
   }
 }
 
+
+
 resource AppInsights_Name_resource 'Microsoft.Insights/components@2020-02-02' = {
-  kind: 'web'
   name: AppInsights_Name
+  kind: 'web'
   location: Location
   properties: {
     Application_Type: 'web'
-    Flow_Type:  'Bluefield'
-    Request_Source: 'rest'
+    Flow_Type: 'Redfield'
+    Request_Source: 'CustomDeployment'
+    WorkspaceResourceId: LogAnalytics_Workspace_Name_resource.id
   }
 }
 

@@ -84,7 +84,7 @@ resource ContainerApps_Environment_Name_resource 'Microsoft.App/managedEnvironme
   ]
 }
 
-resource queuereader 'Microsoft.App/containerApps@2022-03-01' = {
+resource queuereader 'Microsoft.Insights/components@2020-02-02-preview' = {
   name: 'queuereader'
   kind: 'containerapp'
   location: Location
@@ -152,7 +152,7 @@ resource queuereader 'Microsoft.App/containerApps@2022-03-01' = {
   ]
 }
 
-resource storeapp 'Microsoft.App/containerApps@2022-03-01' = {
+resource storeapp 'Microsoft.Insights/components@2020-02-02-preview' = {
   name: 'storeapp'
   kind: 'containerapp'
   location: Location
@@ -188,7 +188,7 @@ resource storeapp 'Microsoft.App/containerApps@2022-03-01' = {
   ]
 }
 
-resource dashboardapi 'Microsoft.App/containerApps@2022-03-01' = {
+resource dashboardapi 'Microsoft.Insights/components@2020-02-02-preview' = {
   name: 'dashboardapi'
   kind: 'containerapp'
   location: Location
@@ -234,7 +234,7 @@ resource dashboardapi 'Microsoft.App/containerApps@2022-03-01' = {
   ]
 }
 
-resource httpapi 'Microsoft.App/containerApps@2022-03-01' = {
+resource httpapi 'Microsoft.Insights/components@2020-02-02-preview' = {
   name: 'httpapi'
   kind: 'containerapp'
   location: Location

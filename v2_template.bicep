@@ -55,6 +55,7 @@ resource AppInsights_Name_resource 'Microsoft.Insights/components@2020-02-02' = 
     Application_Type: 'web'
     Flow_Type: 'Redfield'
     Request_Source: 'CustomDeployment'
+    WorkspaceResourceId: LogAnalytics_Workspace_Name_resource.id
   }
 }
 
@@ -82,7 +83,7 @@ resource queuereader 'Microsoft.App/containerApps@2022-03-01' = {
   properties: {
     managedEnvironmentId: ContainerApps_Environment_Name_resource.id
     configuration: {
-      activeRevisionsMode: 'single'
+      activeRevisionsMode: 'multiple'
       secrets: [
         {
           name: 'queueconnection'
