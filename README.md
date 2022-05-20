@@ -38,9 +38,10 @@ You will work in a separate fork of this repository in GitHub.
 3. After completing the fork, open your repository in GitHub Codespaces by selecting menu `Code/Create codespace on main`
 ![](images/codespaces.png)
 
-This command takes several minutes to set up the development container and clone the source code.
-
+This command will take 5-10 minutes to set up the development container and clone the source code.
+![](images/codespaces-progress.png)
 Once the Codespaces finished deployment you will have a browser based VSCode instance available with a cloned repository. Take a few minutes to familarize yourself with the source code and starter files. 
+![](images/codespaces-done.png)
 
 As this is currently a preview service, you will need to install an Azure CLI extension to work with Container Apps.
 More information about the azure container apps extension commandos: https://docs.microsoft.com/en-us/cli/azure/containerapp?view=azure-cli-latest
