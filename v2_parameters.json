@@ -8,19 +8,19 @@
         "StorageAccount.Name": {
             "value": "pumbaankan103"
         },
-        "LogAnalytics.Workspace.Name": {
+        "LogAnalytics_Workspace.Name": {
             "value": "khcala"
         },
-        "AppInsights.Name": {
+        "AppInsights_Name": {
             "value": "khcaai"
         },
-        "ContainerApps.Environment.Name": {
+        "ContainerApps_Environment_Name": {
             "value": "khcaenv001"
         },
-        "ContainerApps.HttpApi.CurrentRevisionName": {
+        "ContainerApps_HttpApi_CurrentRevisionName": {
             "value": ""
         },
-        "ContainerApps.HttpApi.NewRevisionName": {
+        "ContainerApps_HttpApi_NewRevisionName": {
             "value": "blue"
         }
     }
