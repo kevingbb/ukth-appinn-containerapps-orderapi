@@ -2,7 +2,6 @@
 
 The purpose of this repo is to help you quickly get hands-on with Container Apps. It is meant to be consumed either through GitHub codespaces or through a local Dev Container. The idea being that everything you need from tooling to runtimes is already included in the Dev Container so it should be as simple as executing a run command.
 
-
 ## Scenario
 
 As a retailer, you want your customers to place online orders, while providing them the best online experience. This includes an API to receive orders that is able to scale out and in based on demand. You want to asynchronously store and process the orders using a queing mechanism that also needs to be auto-scaled. With a microservices architecture, Container Apps offer a simple experience that allows your developers focus on the services, and not infrastructure.
@@ -178,7 +177,7 @@ You should see a some log entries that will likely contain the same information 
 ![](images/loganalytics-queue-error.png)
 > "Log_s": "      Queue 'foo' does not exist. Waiting..",
 
-Looks like we have configuration the wrong name for the queue. So, we've gone ahead and made the necessary changes to our bicep code [V2 Bicep template](v2_template.bicep) to be used as version 2 of our solution. Let's deploy version 2.
+Looks like we have configured the wrong name for the queue. So, we've gone ahead and made the necessary changes to our bicep code [V2 Bicep template](v2_template.bicep) to be used as version 2 of our solution. Let's deploy version 2.
 
 ## Deploy Version 2
 
@@ -243,7 +242,7 @@ Let's take a look at the application code
 ...
 ```
 
-It looks like the code is set to send a GUID, not the message itself. Must have been something the developer left in to test things out. Let's modify that code:
+It looks like the code is set to send a GUID, not the message itself. Must have been something the developer left in to test things out. The correct code should look like this:
 
 **DataController.cs** (version 2)
 
@@ -259,7 +258,7 @@ It looks like the code is set to send a GUID, not the message itself. Must have 
       }
 ```
 
-We've fixed the code so that the message received is now actually being sent and we've packaged this up into a new container ready to be redeployed.
+We've now fixed the code so that the message received is now actually being sent and we've packaged this up into a new container ready to be redeployed.
 
 But maybe we should be cautious and make sure this new change is working as expected. Let's perform a controlled rollout of the new version and split the incoming network traffic so that only 20% of requests will be sent to the new version of the application.
 
@@ -324,7 +323,7 @@ curl $storeURL | jq
 
 > Note that the traffic split is 80/20 (80% old api, 20 % new api), so you might need to send a few messages before it hits our new revision of httpapi and appends the provided string to the message.
 
-That's looking better. We can still see the original message, but we can also now see our "test" message with the date and time appended to it.
+That's looking better. We can still see the original message, but we can also now see our "item3" message with the date and time appended to it.
 
 We configured traffic splitting, so let's see that in action. First we will need to send multiple messages to the application. We can use the load testing tool `hey` to do that.
 
