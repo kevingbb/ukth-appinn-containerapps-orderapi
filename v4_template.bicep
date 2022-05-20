@@ -225,6 +225,41 @@ resource dashboardapi 'Microsoft.App/containerApps@2022-03-01' = {
   ]
 }
 
+resource dashboardapp 'Microsoft.App/containerApps@2022-03-01' = {
+  name: 'dashboardapp'
+  location: Location
+  properties: {
+    managedEnvironmentId: ContainerApps_Environment_Name_resource.id
+    configuration: {
+      ingress: {
+        external: true
+        targetPort: 80
+      }
+      dapr: {
+        enabled: true
+        appId: 'dashboardapp'
+        appProtocol: 'http'
+        appPort: 80
+      }
+    }
+    template: {
+      containers: [
+        {
+          image: 'melzayet/ca-operational-dashboard:v1.04'
+          name: 'dashboardapp'       
+        }
+      ]
+      scale: {
+        minReplicas: 1
+        maxReplicas: 1
+        rules: []
+      }
+    }
+  }
+  dependsOn: [
+  ]
+}
+
 resource httpapi 'Microsoft.App/containerApps@2022-03-01' = {
   name: 'httpapi'
   location: Location
