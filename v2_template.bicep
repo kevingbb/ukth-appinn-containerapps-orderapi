@@ -14,7 +14,6 @@ var Workspace_Resource_Id = LogAnalytics_Workspace_Name_resource.id
 
 
 resource StorageAccount_Name_resource 'Microsoft.Storage/storageAccounts@2021-01-01' = {
-  //name: StorageAccount_Name
   name: '${StorageAccount_prefix}${uniqueString(resourceGroup().id)}'
   location: Location
   sku: {
@@ -72,7 +71,8 @@ resource ContainerApps_Environment_Name_resource 'Microsoft.App/managedEnvironme
       }
     }
     
-    daprAIInstrumentationKey: reference(AppInsights_Name_resource.id, '2020-02-02', 'Full').properties.InstrumentationKey
+    daprAIInstrumentationKey: AppInsights_Name_resource.properties.InstrumentationKey
+    daprAIConnectionString: AppInsights_Name_resource.properties.ConnectionString
     
   }
 }
@@ -87,13 +87,8 @@ resource queuereader 'Microsoft.App/containerApps@2022-03-01' = {
       secrets: [
         {
           name: 'queueconnection'
-          value: 'DefaultEndpointsProtocol=https;AccountName=${StorageAccount_Name_resource.name};AccountKey=${listKeys(StorageAccount_Name_resource.id, StorageAccount_ApiVersion).keys[0].value};EndpointSuffix=core.windows.net'
-        
+          value: 'DefaultEndpointsProtocol=https;AccountName=${StorageAccount_Name_resource.name};AccountKey=${listKeys(StorageAccount_Name_resource.id, StorageAccount_ApiVersion).keys[0].value};EndpointSuffix=core.windows.net'      
         }
-        // {
-        //   name: 'APPINSIGHTS_INSTRUMENTATIONKEY'
-        //   value: ContainerApps_Environment_Name_resource.properties.daprAIInstrumentationKey
-        // }
       ]
       dapr: {
         enabled: true
@@ -174,9 +169,7 @@ resource storeapp 'Microsoft.App/containerApps@2022-03-01' = {
         rules: []
       }
     }
-  }
-  dependsOn: [
-  ]
+  } 
 }
 
 resource httpapi 'Microsoft.App/containerApps@2022-03-01' = {
@@ -197,7 +190,7 @@ resource httpapi 'Microsoft.App/containerApps@2022-03-01' = {
         }
       ]
       dapr: {
-        enabled: false
+        enabled: true
       }
     }
     template: {
