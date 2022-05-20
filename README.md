@@ -2,9 +2,6 @@
 
 The purpose of this repo is to help you quickly get hands-on with Container Apps. It is meant to be consumed either through GitHub codespaces or through a local Dev Container. The idea being that everything you need from tooling to runtimes is already included in the Dev Container so it should be as simple as executing a run command.
 
-* **Date:** 10th January 2022
-* **Squad:** Cloud Native
-* **Duration:** 30 minutes
 
 ## Scenario
 
@@ -17,10 +14,11 @@ In this sample you will see how to:
 3. Out of the box Telemetry with Dapr + Azure Monitor (Log Analytics)
 4. Ability to split http traffic when deploying a new version
 5. Ability to configure scaling to meet usage needs
+6. Configure CI/CD deployment to private Azure Container Registry using GitHub Actions
 
 ![Image of sample application architecture and how messages flow through queue into store](/images/th-arch.png)
 
-### Pre-requisites
+## Pre-requisites
 
 There are two options:
 
@@ -28,7 +26,7 @@ There are two options:
 1. [VS Code + Docker Desktop on Local Machine](#getting-started-via-vs-code-and-local-dev-container)
 
 
-### Getting Started
+## Getting Started
 
 You will work in a separate fork of this repository in GitHub.
 
@@ -60,7 +58,7 @@ brew install hey
 
 If you are using an environment other than Codespaces, you can find installation instructions for `hey` here - [https://github.com/rakyll/hey](https://github.com/rakyll/hey)
 
-### Setup Solution
+## Setup Solution
 
 Let's start by setting some variables that we will use for creating Azure resources in this demo, and a resource group for those resources to reside in.
 
@@ -99,7 +97,7 @@ az account set -s <subscription-id>
 az group create --name $resourceGroup --location $location -o table
 ```
 
-### Deploy version 1 of the application
+## Deploy version 1 of the application
 
 We'll deploy the first version of the application to Azure. 
 
@@ -124,7 +122,8 @@ Once deployment has completed, verify the resources created by navigating to [Az
 Select the Container Apps Environment and review the apps listed in the Apps blade
 ![](images/containerapps.png)
 
-Now the application is deployed, let's determine the URL we'll need to use to access it and store that in a variable for convenience
+## Verify version 1 
+Now the application is deployed, let's verify that it works correctly. First determine the URL we'll use to access the store application and save that in a variable for convenience
 
 ```bash
 storeURL=https://storeapp.$(az containerapp env show -g $resourceGroup -n $containerAppEnv --query 'properties.defaultDomain' -o tsv)/store
@@ -138,37 +137,56 @@ Let's see what happens if we call the URL of the store with curl.
 curl $storeURL
 ```
 
-The response you should see is `[]` which means no data was returned. Something's not working, but what?
+The response you should see is `[]` which means no data was returned. Either there has been no orders submitted or something's not working correctly.
+
+Try adding a new order to the order data API and verify that it is stored correctly. First grab the order data API URL using a similar approach as in previous step.
+
+```bash
+dataURL=https://httpapi.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'properties.defaultDomain' -o tsv)/Data
+```
+Add a new order test item using a HTTP Post
+
+```bash
+curl -X POST $dataURL?message=item1
+```
+Verify that the store API returns the order
+
+```bash
+curl $storeURL
+```
+
+Still no orders are returned. 
+
+Finally, check the queue length using the data API
+```bash
+curl $dataURL
+```
+You should see the following output indicating that the queue is not read correctly.
+> `Queue 'demoqueue' has 1 message`
+
+Let's do some troubleshooting.
+
+## Troubleshoot version 1 
 
 ContainerApps integrates with Application Insights and Log Analytics. In the Azure Portal, go to the Log Analytics workspace in the resource group we're using for this demo and run the following query to view the logs for the `queuereader` application.
 
 ```text
 ContainerAppConsoleLogs_CL
 | where ContainerAppName_s has "queuereader" and ContainerName_s has "queuereader"
-| where Log_s has "null"
 | top 100 by TimeGenerated
 ```
 > If you don't see any results from the query you need to wait a couple of minutes for logs to be populated.
 
-Alternatively, if you prefer to stay in the CLI, you can run the Log Analytics query from there.
 
-```bash
-workspaceId=$(az monitor log-analytics workspace show -n $logAnalytics -g $resourceGroup --query "customerId" -o tsv)
+You should see a some log entries that will likely contain the same information about the error. Drill down on one of them to reveal more. You should see something like the following:
+![](images/loganalytics-queue-error.png)
+> "Log_s": "      Queue 'foo' does not exist. Waiting..",
 
-az monitor log-analytics query -w $workspaceId --analytics-query "ContainerAppConsoleLogs_CL | where ContainerAppName_s has 'queuereader' and ContainerName_s has 'queuereader' | where Log_s has 'null' | top 100 by TimeGenerated"
-```
+Looks like we have configuration the wrong name for the queue. So, we've gone ahead and made the necessary changes to our bicep code [V2 Bicep template](v2_template.bicep) to be used as version 2 of our solution. Let's deploy version 2.
 
-You should see a number of log file entries which will likely all contain the same error. Drill down on one of them to reveal more. You should see something like the following:
+## Deploy Version 2
 
-![Image of an Azure Log Analytics log entry showing an error from the queuereader application indicating that a config value is missing](/images/LogAnalyticsDaprPortError.png)
-
-> "Log_s": "      Value cannot be null. (Parameter ''DaprPort' config value is required. Please add an environment variable or app setting.')",
-
-Looks like we're missing a configuration value relating to Dapr. So, we've gone ahead and made the necessary changes to our code and packaged that up in version 2 of our application's container. Let's deploy version 2.
-
-### Deploy Version 2
-
-We'll repeat the deployment command from earlier, but we've updated our template to use version 2 of the queuereader application.
+We'll repeat the deployment command from earlier, but we've updated our template to use version 2 of the configuration.
 
 ```bash
 az deployment group create \
@@ -180,14 +198,14 @@ az deployment group create \
     AppInsights_Name=$appInsights 
 
 ```
-
+## Verify Version 2 
 This time, we'll store the URL for the HTTP API application in a variable
 
 ```bash
 dataURL=https://httpapi.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'properties.defaultDomain' -o tsv)/Data
 ```
 
-Now let's see what happens if we access that URL
+Let's see what happens when we access the queue application using the data URL
 
 > As before, you can type `echo $dataURL` to get the URL of the HTTP API and then open it in a browser if you prefer
 
@@ -199,7 +217,7 @@ The result tells us that `demoqueue` has no messages:
 
 > `Queue 'demoqueue' has 0 messages`
 
-We can call the HTTP API endpoint to add a test message.
+Now add a test message.
 
 ```bash
 curl -X POST $dataURL?message=test
@@ -213,7 +231,10 @@ curl $storeURL
 
 > `[{"id":"f30e1eb6-d9d1-458b-b8d3-327e5597ffc7","message":"57e88c1e-f4a4-4c66-8eb5-128bb235b08d"}]`
 
-Ok, that's something but that's not the message we sent. Let's take a look at the application code
+Ok, that's something but that's not the message we sent. 
+## Troubleshoot Version 2 
+Let's take a look at the application code
+
 
 **DataController.cs**
 
@@ -271,7 +292,7 @@ To implement the traffic split, the following has been added to the deployment t
 
 Effectively, we're asking for 80% of traffic to be sent to the current version (revision) of the application and 20% to be sent to the new version that's about to be deployed.
 
-### Deploy version 3
+## Deploy version 3
 
 Once again, let's repeat the deployment command from earlier, now using version 2 of the HTTP API application and with traffic splitting configured
 
@@ -284,7 +305,7 @@ az deployment group create \
     LogAnalytics_Workspace_Name=$logAnalytics \
     AppInsights_Name=$appInsights 
 ```
-
+## Verify version 3
 With the third iteration of our applications deployed, let's try and send another order.
 
 ```bash
@@ -357,6 +378,7 @@ First, let's confirm that all of the traffic is now going to the new application
 ```bash
 hey -m POST -n 10 -c 1 $dataURL?message=testscale
 ```
+## Verify version 4
 
 Let's check the number of orders in the queue
 
