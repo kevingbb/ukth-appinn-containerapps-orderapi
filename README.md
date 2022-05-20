@@ -27,6 +27,7 @@ There are two options:
 1. [Access to GitHub Codespaces](#getting-started-via-codespaces)
 1. [VS Code + Docker Desktop on Local Machine](#getting-started-via-vs-code-and-local-dev-container)
 
+
 ### Getting Started
 
 You will work in a separate fork of this repository in GitHub.
@@ -113,7 +114,6 @@ az deployment group create \
 We'll deploy the first version of the application to Azure. 
 
 Review the [V1 Bicep template](v1_template.bicep) that contains IaC definitions for Azure Container Apps Environment and other related services such as Log Analytics and a Storage account for the queue. Notice the individual container app resources 
-
 
 ```bash
 az deployment group create \
