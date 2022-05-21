@@ -463,6 +463,10 @@ Click “Generate token”, copy the generated token and assign the variable.
 ```bash
 ghToken=[Replace with the PAT]
 ```
+Set the "repoUrl" variable, replace <OWNER> with the GitHub account name. 
+```bash
+repoUrl=https://github.com/<OWNER>/ukth-appinn-containerapps-orderapi
+```
 Now all the variables are set so we can run the Azure CLI command, make sure you are located at the root of the repo and run the following command.
 
 ```bash
