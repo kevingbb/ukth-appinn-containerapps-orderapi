@@ -472,7 +472,7 @@ Now all the variables are set so we can run the Azure CLI command, make sure you
 ```bash
 az containerapp github-action add \
   --repo-url $repoUrl \
-  --docker-file-path "./queuereaderapp/Dockerfile" \
+  --context-path "./queuereaderapp/Dockerfile" \
   --branch main \
   --name queuereader \
   --resource-group $resourceGroup \
