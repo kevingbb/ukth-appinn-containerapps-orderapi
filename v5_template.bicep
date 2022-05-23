@@ -1,21 +1,47 @@
-var apiManagementName = ''
-var managedEnvironmentName = ''
-var apiGatewayContainerAppName = 'httpapi-apim'
+//az deployment group create \ 
+//-g $resourceGroup \
+//-f v5_template.bicep \ 
+//-p apiManagementName=${name}-apim containerAppsEnvName=$containerAppEnv storageAccountName='asd76n4gbkytpj74' 
+//-p apiManagementName=${name}-apim containerAppsEnvName=$containerAppEnv storageAccountName=[chk in portal] 
 
+//
+
+// Params 
+param location string = resourceGroup().location
+param apiManagementName string 
+param containerAppsEnvName string 
+param storageAccountName string 
 @secure()
-var selfHostedGatewayToken string
+param selfHostedGatewayToken string
+
+
+// varianles
+var apiGatewayContainerAppName = 'apim'
+var selfHostedGatewayName = 'gw-01'
 var gatewayTokenSecretName = 'gateway-token'
 
 
-resource apim 'Mi'
+// ContainerAppsEnvironment
+resource containerAppsEnv 'Microsoft.App/managedEnvironments@2022-03-01' existing = { 
+  name: containerAppsEnvName
+}
 
+// Api Management
+resource apim 'Microsoft.ApiManagement/service@2021-08-01' existing =  { 
+  name: apiManagementName
+}
 
+// StorageAccount
+resource stg 'Microsoft.Storage/storageAccounts@2021-01-01' existing =  { 
+  name: storageAccountName
+}
 
+// APIM Self hosted gateway (SHGW) 
 resource apiGatewayContainerApp 'Microsoft.App/containerApps@2022-03-01' = {
   name: apiGatewayContainerAppName
   location: location
   properties: {
-    managedEnvironmentId: environment.id
+    managedEnvironmentId: containerAppsEnv.id
     configuration: {
       ingress: {
         external: true
@@ -54,7 +80,7 @@ resource apiGatewayContainerApp 'Microsoft.App/containerApps@2022-03-01' = {
         }
       ]
       scale: {
-        minReplicas: 0
+        minReplicas: 1
         maxReplicas: 5
         rules:[
           {
@@ -72,37 +98,32 @@ resource apiGatewayContainerApp 'Microsoft.App/containerApps@2022-03-01' = {
 }
 
 
+// Internal httpapi  
 resource httpapi 'Microsoft.App/containerApps@2022-03-01' = {
-  name: 'httpapi-internal'
-  location: Location
+  name: 'httpapi2'
+  location: location
   properties: {
-    managedEnvironmentId: ContainerApps_Environment_Name_resource.id
+    managedEnvironmentId: containerAppsEnv.id
     configuration: {
       activeRevisionsMode: 'multiple'
       ingress: {
         external: false
         targetPort: 80
-       
+        allowInsecure: true
       }
       secrets: [
         {
           name: 'queueconnection'
-          value: 'DefaultEndpointsProtocol=https;AccountName=${StorageAccount_Name_resource.name};AccountKey=${listKeys(StorageAccount_Name_resource.id, StorageAccount_ApiVersion).keys[0].value};EndpointSuffix=core.windows.net'
+          value: 'DefaultEndpointsProtocol=https;AccountName=${stg.name};AccountKey=${listKeys(stg.id, '2018-07-01').keys[0].value};EndpointSuffix=core.windows.net'
         }
       ]
-      dapr: {
-        enabled: true
-        appId: 'httpapi'
-        appProtocol: 'http'
-        appPort: 80
-      }
     }
     template: {
-      revisionSuffix: ContainerApps_HttpApi_NewRevisionName
+      revisionSuffix: 'red'
       containers: [
         {
           image: 'kevingbb/httpapiapp:v2'
-          name: 'httpapi'
+          name: 'httpapi2'
           env: [
             {
               name: 'QueueName'
@@ -132,3 +153,61 @@ resource httpapi 'Microsoft.App/containerApps@2022-03-01' = {
     }
   }
 }
+
+
+
+// Api in APIM 
+resource apimApi 'Microsoft.ApiManagement/service/apis@2021-08-01' = {
+  name: '${apiManagementName}/httpapi2'
+  properties: {
+    path: '/api'
+    apiType: 'http'
+    displayName: 'httpapi2'
+    subscriptionRequired: true
+    serviceUrl: 'http://${httpapi.properties.configuration.ingress.fqdn}'
+    subscriptionKeyParameterNames: {
+      header: 'X-API-Key'
+      query: 'apiKey'
+    }
+    protocols: [
+      'http'
+      'https'
+    ]
+  }
+  dependsOn:[
+    httpapi
+  ]
+}
+
+// Operation for API in APIM
+resource apiOperation 'Microsoft.ApiManagement/service/apis/operations@2021-08-01' = {
+  name: 'AddItems'
+  parent: apimApi
+  properties: {
+    displayName: 'AddItems'
+    method: 'POST'
+    urlTemplate: '/data'
+    description: 'POST items to queue'
+    request:{
+      queryParameters: [
+        {
+          type: 'string'
+          name: 'message'
+        }
+      ]
+    }    
+  }
+
+}
+
+// Expose API in SHGW
+resource exposeApiOnGateway 'Microsoft.ApiManagement/service/gateways/apis@2021-08-01' = {
+  name: '${apiManagementName}/${selfHostedGatewayName}/httpapi2'
+  properties: {}
+  dependsOn: [
+    apimApi
+  ]
+}
+
+
+
