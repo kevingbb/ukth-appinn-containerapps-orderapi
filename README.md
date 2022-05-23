@@ -2,6 +2,28 @@
 
 The purpose of this repo is to help you quickly get hands-on with Container Apps. It is meant to be consumed either through GitHub codespaces or through a local Dev Container. The idea being that everything you need from tooling to runtimes is already included in the Dev Container so it should be as simple as executing a run command.
 
+## Activities
+  - [Review Scenario](#scenario)
+  - [Review Architecture](#architecture)
+  - [Ensure Pre-requisites](#pre-requisites)
+  - [Getting Started](#getting-started)
+  - [Setup Solution](#setup-solution)
+  - [Deploy version 1 of the application](#deploy-version-1-of-the-application)
+  - [Verify version 1](#verify-version-1)
+  - [Troubleshoot version 1](#troubleshoot-version-1)
+  - [Deploy Version 2](#deploy-version-2)
+  - [Verify Version 2](#verify-version-2)
+  - [Troubleshoot Version 2](#troubleshoot-version-2)
+  - [Deploy version 3](#deploy-version-3)
+  - [Verify version 3](#verify-version-3)
+  - [Deploy version 4](#deploy-version-4)
+  - [Verify version 4](#verify-version-4)
+  - [Deploy version 5](#deploy-version-5)
+  - [Version 6, working with API Management](#version-6-working-with-api-management)
+  - [Version 7, enable authentication](#deploy-version-7)
+  - [Verify version 7](#verify-version-7)
+  - [Cleanup](#cleanup)
+
 ## Scenario
 
 As a retailer, you want your customers to place online orders, while providing them the best online experience. This includes an API to receive orders that is able to scale out and in based on demand. You want to asynchronously store and process the orders using a queing mechanism that also needs to be auto-scaled. With a microservices architecture, Container Apps offer a simple experience that allows your developers focus on the services, and not infrastructure.
@@ -16,6 +38,11 @@ In this sample you will see how to:
 6. Configure CI/CD deployment to private Azure Container Registry using GitHub Actions
 
 ![Image of sample application architecture and how messages flow through queue into store](/images/th-arch.png)
+
+## Architecture
+Once this lab is completed you should have an Architecture that looks something like the diagram below.
+
+![](/images/architecture.png)
 
 ## Pre-requisites
 
@@ -179,7 +206,7 @@ You should see a some log entries that will likely contain the same information 
 
 Looks like we have configured the wrong name for the queue. So, we've gone ahead and made the necessary changes to our bicep code [V2 Bicep template](v2_template.bicep) to be used as version 2 of our solution. Let's deploy version 2.
 
-## Deploy Version 2
+## Deploy version 2
 
 We'll repeat the deployment command from earlier, but we've updated our template to use version 2 of the configuration.
 
@@ -222,7 +249,7 @@ curl $storeURL
 > `[{"id":"a85b038a-a01f-4f25-b468-238d0c8a3676","message":"24a1f5ed-2407-4f9d-a6f9-5664436f1c28"},{"id":"f2b4c93a-63e5-4a4d-8a66-1fa4d4b958fe","message":"5940cf24-8c55-4b38-938a-10d9351d5d2b"}]`
 
 Ok, that's some progress but not the messages we sent in the query string. 
-## Troubleshoot Version 2 
+## Troubleshoot version 2 
 Let's take a look at the application code
 
 
@@ -603,7 +630,7 @@ ContainerAppConsoleLogs_CL
 | order by TimeGenerated desc
 ```
 
-## Deploy version 7
+## Version 7, enable authentication
 Up until now we have allowed anonymous access to the application. Let's protect the Dashboard App web application with Azure AD authentication using the Easy Auth service built into Container Apps. See [Authentication and authorization in Azure Container Apps](https://docs.microsoft.com/en-us/azure/container-apps/authentication) for additional details
 
 Navigate to the Container Dashboard App in [Azure Portal](https://portal.azure.com) and select the Authentication blade.
@@ -630,7 +657,7 @@ The Dashboard App is now configured with Azure AD Authentication.
 
 ## Verify version 7
 Get the Dashboard URL from the variable stored in a previous step
-```
+``` bash
 echo $dashboardURL
 ```
 
@@ -653,7 +680,7 @@ Accept the consent and you will be redirected to the Dashboard App
 ![](/images/easyauth-dashboardapp.png)
 
 
-### Cleanup
+## Cleanup
 
 Deleting the Azure resource group should remove everything associated with this demo.
 
