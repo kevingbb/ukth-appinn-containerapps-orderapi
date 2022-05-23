@@ -1,10 +1,3 @@
-//az deployment group create \ 
-//-g $resourceGroup \
-//-f v5_template.bicep \ 
-//-p apiManagementName=${name}-apim containerAppsEnvName=$containerAppEnv storageAccountName='asd76n4gbkytpj74' 
-//-p apiManagementName=${name}-apim containerAppsEnvName=$containerAppEnv storageAccountName=[chk in portal] 
-
-//
 
 // Params 
 param location string = resourceGroup().location
@@ -15,7 +8,7 @@ param storageAccountName string
 param selfHostedGatewayToken string
 
 
-// varianles
+// variables
 var apiGatewayContainerAppName = 'apim'
 var selfHostedGatewayName = 'gw-01'
 var gatewayTokenSecretName = 'gateway-token'

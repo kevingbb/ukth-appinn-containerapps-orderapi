@@ -556,7 +556,7 @@ az deployment group create -g $resourceGroup -f apim.bicep -p apiManagementName=
 ```
 
 After the script has finished an API Management instance and a SHGW has been created.  
-Go to the API Management instance in Azure portal and click on "Gateways" in the menu. One gateway called "gw-01" has been created. Click on the gateway name --> Deployment --> Copy everything in the field called "Token" and set the variable "gwtoken", the value must be inside "" double quotes. 
+Go to the API Management instance in Azure portal and click on "Gateways" in the menu. A gateway called "gw-01" has been created. Click on the gateway name --> Deployment --> Copy everything in the field called "Token" and set the variable "gwtoken", the value must be inside "" double quotes. 
 
 ```bash
 gwtoken="[Paste value from the Token field]"
@@ -571,25 +571,25 @@ storageaccount=[Enter the name of the storageaccount]
 Deploy Container Apps and create API Management configuration. 
 
 ```bash
-az deployment group create -g $resourceGroup -f v5_template.bicep -p apiManagementName=${name}-apim containerAppsEnvName=$containerAppEnv storageAccountName=$storageaccount selfHostedGatewayToken=$gwtoken
+az deployment group create -g $resourceGroup -f v5_template.bicep -p apiManagementName=${name}-apim containerAppsEnvName=$containerAppEnv storageAccountName=$storageaccount selfHostedGatewayToken="$gwtoken"
 ```
 
 Now API Management SHGW has been deployed as a Container App inside of Container Apps and a new Container App called "httpapi2" has been created with an internal ingress which means that is not exposed to the internet.
 
-API Management has protected the API using an API key so this needs to be retrieved. Got to the Azure portal --> Subscriptions --> Choose the row with the scope "Product: Unlimited" --> on the right click the three dots --> Show/hide keys --> Copy the Primary Key value
+API Management has protected the API using an API key so this needs to be retrieved. Got to the Azure portal --> Subscriptions --> Choose the bottom row with the scope "Service" --> on the right click the three dots --> Show/hide keys --> Copy the Primary Key value
 
 ```bash
 apikey=[Paste the value of the primary key]
 ```
 
-Retrieve the url of the SHGW in Container Apps.   
+Retrieve the url of the SHGW in Container Apps.    
 ```bash
 apimURL=https://apim.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'properties.defaultDomain' -o tsv)/api/data
 ```
 
-Add a new order by using HTTP POST. 
+Add a new order by using HTTP POST and add a header used for authenticate against API Management. 
 ```bash
-curl -X POST $apimURL?message=apimitem1&apikey=$apikey
+curl -X POST -H "X-API-Key:$apikey" $apimURL?message=apimitem1
 ```
 
 Verify that it works in Log Analytics.
