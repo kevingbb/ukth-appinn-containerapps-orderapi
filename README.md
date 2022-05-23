@@ -540,6 +540,70 @@ ContainerAppConsoleLogs_CL
 
 Here you should see one row with the text "This is a new log message!".
 
+## Version 6, working with API Management
+
+Now it's time to protect our "httpapi" behind [API Management self hosted gateway (SHGW)](https://docs.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview). This will be done by: 
+- Create a new Container App "httpapi2" based on the same image used in previous steps.
+- Configure an internal ingress for "httpapi2" Container App. 
+- Create a new Container App "apim" based on an image provided by Microsoft.
+- Configure an external ingress for "apim" Container App.
+- Configure an API, operation in API Management and expose the API inside the SHGW.
+
+First API Management must be created using the Developer sku. (Consumption doesn't support SHGW). This takes 30-45 minutes. 
+
+```bash
+az deployment group create -g $resourceGroup -f apim.bicep -p apiManagementName=${name}-apim
+```
+
+After the script has finished an API Management instance and a SHGW has been created.  
+Go to the API Management instance in Azure portal and click on "Gateways" in the menu. One gateway called "gw-01" has been created. Click on the gateway name --> Deployment --> Copy everything in the field called "Token" and set the variable "gwtoken", the value must be inside "" double quotes. 
+
+```bash
+gwtoken="[Paste value from the Token field]"
+```
+
+In the Azure portal, go to the resource group you have been working with and locate the name of the storageaccount that has been created. Set the storageaccount variable.   
+
+```bash
+storageaccount=[Enter the name of the storageaccount]
+```
+
+Deploy Container Apps and create API Management configuration. 
+
+```bash
+az deployment group create -g $resourceGroup -f v5_template.bicep -p apiManagementName=${name}-apim containerAppsEnvName=$containerAppEnv storageAccountName=$storageaccount selfHostedGatewayToken=$gwtoken
+```
+
+Now API Management SHGW has been deployed as a Container App inside of Container Apps and a new Container App called "httpapi2" has been created with an internal ingress which means that is not exposed to the internet.
+
+API Management has protected the API using an API key so this needs to be retrieved. Got to the Azure portal --> Subscriptions --> Choose the row with the scope "Product: Unlimited" --> on the right click the three dots --> Show/hide keys --> Copy the Primary Key value
+
+```bash
+apikey=[Paste the value of the primary key]
+```
+
+Retrieve the url of the SHGW in Container Apps.   
+```bash
+apimURL=https://apim.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'properties.defaultDomain' -o tsv)/api/data
+```
+
+Add a new order by using HTTP POST. 
+```bash
+curl -X POST $apimURL?message=apimitem1&apikey=$apikey
+```
+
+Verify that it works in Log Analytics.
+
+```text
+ContainerAppConsoleLogs_CL
+| where ContainerAppName_s has "queuereader" and ContainerName_s has "queuereader"
+| where Log_s has "Message"
+| project TimeGenerated, Log_s
+| order by TimeGenerated desc
+```
+
+
+
 ### Cleanup
 
 Deleting the Azure resource group should remove everything associated with this demo.

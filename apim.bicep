@@ -1,5 +1,4 @@
 
-// az deployment group create -g $resourceGroup -f apim.bicep -p apiManagementName=${name}-apim
 param apiManagementName string 
 param location string = resourceGroup().location
 
@@ -30,4 +29,3 @@ resource selfHostedGateway 'Microsoft.ApiManagement/service/gateways@2021-08-01'
   }
 }
 
-output shgwtoken string = selfHostedGateway.listKeys().primary
