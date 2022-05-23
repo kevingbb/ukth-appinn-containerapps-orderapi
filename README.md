@@ -262,22 +262,22 @@ We've now fixed the code so that the message received is now actually being sent
 
 But maybe we should be cautious and make sure this new change is working as expected. Let's perform a controlled rollout of the new version and split the incoming network traffic so that only 20% of requests will be sent to the new version of the application.
 
-To implement the traffic split, the following has been added to the deployment template
-
+To implement the traffic split, in v3_template.bicep add the traffic section on your httpapi app and save the file.
 ```json
-  "ingress": {
-      "external": true,
-      "targetPort": 80,
-      "traffic":[
+  ingress: {
+        external: true
+        targetPort: 80
+        traffic: [
           {
-              "revisionName": "[concat('httpapi--', parameters('ContainerApps.HttpApi.CurrentRevisionName'))]",
-              "weight": 80
-          },
-          {
-              "latestRevision": true,
-              "weight": 20
+            revisionName: 'httpapi--${ContainerApps_HttpApi_CurrentRevisionName}'
+            weight: 80
           }
-      ]
+          {
+            latestRevision: true
+            weight: 20
+          }
+        ]
+      }
 ```
 
 Effectively, we're asking for 80% of traffic to be sent to the current version (revision) of the application and 20% to be sent to the new version that's about to be deployed.
