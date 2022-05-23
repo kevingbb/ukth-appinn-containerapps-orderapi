@@ -262,22 +262,22 @@ We've now fixed the code so that the message received is now actually being sent
 
 But maybe we should be cautious and make sure this new change is working as expected. Let's perform a controlled rollout of the new version and split the incoming network traffic so that only 20% of requests will be sent to the new version of the application.
 
-To implement the traffic split, the following has been added to the deployment template
-
+To implement the traffic split, in v3_template.bicep add the traffic section on your httpapi app and save the file.
 ```json
-  "ingress": {
-      "external": true,
-      "targetPort": 80,
-      "traffic":[
+  ingress: {
+        external: true
+        targetPort: 80
+        traffic: [
           {
-              "revisionName": "[concat('httpapi--', parameters('ContainerApps.HttpApi.CurrentRevisionName'))]",
-              "weight": 80
-          },
-          {
-              "latestRevision": true,
-              "weight": 20
+            revisionName: 'httpapi--${ContainerApps_HttpApi_CurrentRevisionName}'
+            weight: 80
           }
-      ]
+          {
+            latestRevision: true
+            weight: 20
+          }
+        ]
+      }
 ```
 
 Effectively, we're asking for 80% of traffic to be sent to the current version (revision) of the application and 20% to be sent to the new version that's about to be deployed.
@@ -351,7 +351,7 @@ So, is our app ready for primetime now? Let's change things so that the new app 
 
 ## Deploy version 4
 
-One final time, we'll now deploy the new configuration with scaling configured. We will also add a simple dashboard for monitoring the messages flow.
+One additional time, we'll now deploy the new configuration with scaling configured. We will also add a simple dashboard for monitoring the messages flow.
 
 ```bash
 az deployment group create \
@@ -540,6 +540,7 @@ ContainerAppConsoleLogs_CL
 
 Here you should see one row with the text "This is a new log message!".
 
+
 ## Version 6, working with API Management
 
 Now it's time to protect our "httpapi" behind [API Management self hosted gateway (SHGW)](https://docs.microsoft.com/en-us/azure/api-management/self-hosted-gateway-overview). This will be done by: 
@@ -602,6 +603,54 @@ ContainerAppConsoleLogs_CL
 | order by TimeGenerated desc
 ```
 
+## Deploy version 7
+Up until now we have allowed anonymous access to the application. Let's protect the Dashboard App web application with Azure AD authentication using the Easy Auth service built into Container Apps. See [Authentication and authorization in Azure Container Apps](https://docs.microsoft.com/en-us/azure/container-apps/authentication) for additional details
+
+Navigate to the Container Dashboard App in [Azure Portal](https://portal.azure.com) and select the Authentication blade.
+![](/images/easyauth-authentication.png)
+
+Select Add Identity provider and select "Microsoft" as the identity provider
+![](/images/easyauth-identityprovider.png)
+
+>Notice the extensive list of identity provider options available
+
+In the "Add identity provider" page change the name of the identity provider to be prefixed with the unique name generated earlier in the lab. You can find it with the following command
+
+```
+echo $name
+```
+Leave the other options with default values
+![](/images/easyauth-identityprovideroptions.png)
+
+Select "Next: Permissions".
+![](/images/easyauth-permission.png)
+Accept the default values and click "Add"
+
+The Dashboard App is now configured with Azure AD Authentication.
+
+## Verify version 7
+Get the Dashboard URL from the variable stored in a previous step
+```
+echo $dashboardURL
+```
+
+If you don't have that variable available you can get it via the following command
+> ```bash
+> dashboardURL=https://dashboardapp.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'properties.defaultDomain' -o tsv)
+> echo 'Open the URL in your browser of choice:' $dashboardURL
+> ```
+
+Open the Url in a browser. You will be prompted for login similar to this
+![](images/easyauth-login.png)
+Make sure to select your organizational account if you have several accounts. 
+Select login.
+
+Next you will be presented with a consent dialog. 
+![](images/easyauth-consent.png)
+
+Accept the consent and you will be redirected to the Dashboard App
+
+![](/images/easyauth-dashboardapp.png)
 
 
 ### Cleanup
