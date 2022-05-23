@@ -351,7 +351,7 @@ So, is our app ready for primetime now? Let's change things so that the new app 
 
 ## Deploy version 4
 
-One final time, we'll now deploy the new configuration with scaling configured. We will also add a simple dashboard for monitoring the messages flow.
+One additional time, we'll now deploy the new configuration with scaling configured. We will also add a simple dashboard for monitoring the messages flow.
 
 ```bash
 az deployment group create \
@@ -539,6 +539,55 @@ ContainerAppConsoleLogs_CL
 ``` 
 
 Here you should see one row with the text "This is a new log message!".
+
+## Deploy version 6
+Up until now we have allowed anonymous access to the application. Let's protect the Dashboard App web application with Azure AD authentication using the Easy Auth service built into Container Apps. See [Authentication and authorization in Azure Container Apps](https://docs.microsoft.com/en-us/azure/container-apps/authentication) for additional details
+
+Navigate to the Container Dashboard App in [Azure Portal](https://portal.azure.com) and select the Authentication blade.
+![](/images/easyauth-authentication.png)
+
+Select Add Identity provider and select "Microsoft" as the identity provider
+![](/images/easyauth-identityprovider.png)
+
+>Notice the extensive list of identity provider options available
+
+In the "Add identity provider" page change the name of the identity provider to be prefixed with the unique name generated earlier in the lab. You can find it with the following command
+
+```
+echo $name
+```
+Leave the other options with default values
+![](/images/easyauth-identityprovideroptions.png)
+
+Select "Next: Permissions".
+![](/images/easyauth-permission.png)
+Accept the default values and click "Add"
+
+The Dashboard App is now configured with Azure AD Authentication.
+
+## Verify version 6
+Get the Dashboard URL from the variable stored in a previous step
+```
+echo $dashboardURL
+```
+
+If you don't have that variable available you can get it via the following command
+> ```bash
+> dashboardURL=https://dashboardapp.$(az containerapp env show -g $resourceGroup -n ${name}-env --query 'properties.defaultDomain' -o tsv)
+> echo 'Open the URL in your browser of choice:' $dashboardURL
+> ```
+
+Open the Url in a browser. You will be prompted for login similar to this
+![](images/easyauth-login.png)
+Make sure to select your organizational account if you have several accounts. 
+Select login.
+
+Next you will be presented with a consent dialog. 
+![](images/easyauth-consent.png)
+
+Accept the consent and you will be redirected to the Dashboard App
+
+![](/images/easyauth-dashboardapp.png)
 
 ### Cleanup
 
