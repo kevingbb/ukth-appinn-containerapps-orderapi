@@ -44,7 +44,7 @@ In this sample you will see how to:
 ## Architecture
 Once this lab is completed you should have an Architecture that looks something like the diagram below.
 
-![](/images/architecture.png)
+![](/images/architecture-overview.png)
 
 ## Pre-requisites
 
