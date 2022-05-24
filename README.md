@@ -670,11 +670,14 @@ If you don't have that variable available you can get it via the following comma
 > ```
 
 Open the Url in a browser. You will be prompted for login similar to this
+
 ![](images/easyauth-login.png)
+
 Make sure to select your organizational account if you have several accounts. 
 Select login.
 
 Next you will be presented with a consent dialog. 
+
 ![](images/easyauth-consent.png)
 
 Accept the consent and you will be redirected to the Dashboard App
