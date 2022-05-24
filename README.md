@@ -36,6 +36,8 @@ In this sample you will see how to:
 4. Ability to split http traffic when deploying a new version
 5. Ability to configure scaling to meet usage needs
 6. Configure CI/CD deployment to private Azure Container Registry using GitHub Actions
+7. Use API Management with Container Apps.
+8. Enable Authentication for a Container App using Easy Auth.
 
 ![Image of sample application architecture and how messages flow through queue into store](/images/th-arch.png)
 
