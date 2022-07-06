@@ -79,7 +79,7 @@
             "name": "[parameters('AppInsights.Name')]",
             "type": "Microsoft.Insights/Components",
             "location": "[parameters('Location')]",
-            "apiVersion": "2020-02-02-preview",
+            "apiVersion": "2020-02-02",
             "properties": {
                 "ApplicationId": "[parameters('AppInsights.Name')]",
                 "Application_Type": "web",
@@ -89,7 +89,7 @@
         },
         {
             "type": "Microsoft.App/managedEnvironments",
-            "apiVersion": "2022-01-01-preview",
+            "apiVersion": "2022-03-01",
             "name": "[parameters('ContainerApps.Environment.Name')]",
             "location": "[parameters('Location')]",
             "tags": {},
@@ -102,9 +102,7 @@
                         "sharedKey": "[listKeys(variables('Workspace.Resource.Id'), '2015-03-20').primarySharedKey]"
                     }
                 },
-                "containerAppsConfiguration": {
-                    "daprAIInstrumentationKey": "[reference(resourceId('Microsoft.Insights/components', parameters('AppInsights.Name')), '2020-02-02', 'Full').properties.InstrumentationKey]"
-                }
+                "daprAIInstrumentationKey": "[reference(resourceId('Microsoft.Insights/components', parameters('AppInsights.Name')), '2020-02-02', 'Full').properties.InstrumentationKey]"
             },
             "dependsOn": [
                 "[variables('Workspace.Resource.Id')]",
@@ -114,7 +112,7 @@
         {
             "name": "queuereader",
             "type": "Microsoft.App/containerApps",
-            "apiVersion": "2022-01-01-preview",
+            "apiVersion": "2022-03-01",
             "kind": "containerapp",
             "location": "[parameters('Location')]",
             "properties": {
@@ -183,7 +181,7 @@
         {
             "name": "dashboardapp",
             "type": "Microsoft.App/containerApps",
-            "apiVersion": "2022-01-01-preview",
+            "apiVersion": "2022-03-01",
             "kind": "containerapp",
             "location": "[parameters('Location')]",
             "properties": {
@@ -221,7 +219,7 @@
         {
             "name": "dashboardapi",
             "type": "Microsoft.App/containerApps",
-            "apiVersion": "2022-01-01-preview",
+            "apiVersion": "2022-03-01",
             "kind": "containerapp",
             "location": "[parameters('Location')]",
             "properties": {
@@ -271,7 +269,7 @@
         {
             "name": "storeapp",
             "type": "Microsoft.App/containerApps",
-            "apiVersion": "2022-01-01-preview",
+            "apiVersion": "2022-03-01",
             "kind": "containerapp",
             "location": "[parameters('Location')]",
             "properties": {
@@ -309,7 +307,7 @@
         {
             "name": "httpapi",
             "type": "Microsoft.App/containerApps",
-            "apiVersion": "2022-01-01-preview",
+            "apiVersion": "2022-03-01",
             "kind": "containerapp",
             "location": "[parameters('Location')]",
             "properties": {
